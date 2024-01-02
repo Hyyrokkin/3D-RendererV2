@@ -1,0 +1,17 @@
+#ifndef INC_3D_RENDER_SETTINGS_H
+#define INC_3D_RENDER_SETTINGS_H
+
+#define WINDOW_TITLE "3D Renderer"
+#define WINDOW_TITLE_MAX_LENGTH 128
+#define WINDOW_WIDTH 1028.0f
+#define WINDOW_HEIGHT 720.0f
+#define NEAR_PLANE 0.1f
+#define FAR_PLANE 1000.0f
+#define FOV 90.0f
+
+#define MOVE_SPEED 8.0f
+#define VERT_MOVE_SPEED 8.0f
+#define HOR_MOVE_SPEED 8.0f
+#define TURN_SPEED 2.0f
+
+#endif //INC_3D_RENDER_SETTINGS_H
