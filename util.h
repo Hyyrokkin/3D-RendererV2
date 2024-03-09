@@ -36,7 +36,7 @@ void MakeMatRotY(mat4x4* matrix, float angleRad);
 
 void MakeMatRotZ(mat4x4* matrix, float angleRad);
 
-void MakeMatTranslate(mat4x4* matrix, float x, float y, float z);
+void MakeMatTranslate(mat4x4* matrix, vec3d pos);
 
 void MakeMatProjection(mat4x4* matrix, float fov, float aspectRatio, float farPlane, float nearPlane);
 
@@ -56,6 +56,8 @@ float DotProduct(const vec3d i1, const vec3d i2);
 float GetLengthVector(const vec3d v);
 
 void NormalizeVector(vec3d* toNormalize);
+
+void CopyVector(vec3d* out, const vec3d in);
 
 void AddVector(vec3d* output, const vec3d i1, const vec3d i2);
 

@@ -9,9 +9,8 @@
 #define FAR_PLANE 1000.0f
 #define FOV 90.0f
 
-#define MOVE_SPEED 8.0f
-#define VERT_MOVE_SPEED 8.0f
-#define HOR_MOVE_SPEED 8.0f
+#define VERT_MOVE_SPEED 6.0f
+#define HOR_MOVE_SPEED 4.0f
 #define TURN_SPEED 2.0f
 
 #endif //INC_3D_RENDER_SETTINGS_H

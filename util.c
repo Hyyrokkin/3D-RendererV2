@@ -58,7 +58,7 @@ void MakeMatRotZ(mat4x4* matrix, float angleRad)
     matrix->m[3][3] = 1.0f;
 }
 
-void MakeMatTranslate(mat4x4* matrix, float x, float y, float z)
+void MakeMatTranslate(mat4x4* matrix, vec3d pos)
 {
     InitMatToZero(matrix);
 
@@ -66,9 +66,9 @@ void MakeMatTranslate(mat4x4* matrix, float x, float y, float z)
     matrix->m[1][1] = 1.0f;
     matrix->m[2][2] = 1.0f;
     matrix->m[3][3] = 1.0f;
-    matrix->m[3][0] = x;
-    matrix->m[3][1] = y;
-    matrix->m[3][2] = z;
+    matrix->m[3][0] = pos.x;
+    matrix->m[3][1] = pos.y;
+    matrix->m[3][2] = pos.z;
 }
 
 void MakeMatProjection(mat4x4* matrix, float fov, float aspectRatio,  float nearPlane, float farPlane)
@@ -160,6 +160,14 @@ void NormalizeVector(vec3d* toNormalize)
         toNormalize->y /= l;
         toNormalize->z /= l;
     }
+}
+
+void CopyVector(vec3d* out, const vec3d in)
+{
+    out->x = in.x;
+    out->y = in.y;
+    out->z = in.z;
+    out->w = in.w;
 }
 
 void AddVector(vec3d* output, const vec3d i1, const vec3d i2)
