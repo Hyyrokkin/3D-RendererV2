@@ -250,6 +250,7 @@ triangle* CopyTriangel(const triangle* toCopy)
     return output;
 }
 
+//for the painters sort algo
 int triCompareFunc(const void * a, const void * b)
 {
     triangle t1 = **((triangle**) a);

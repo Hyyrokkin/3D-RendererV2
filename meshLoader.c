@@ -4,26 +4,32 @@
 
 #include "meshLoader.h"
 
+//Load a mesh from a file path
 mesh* LoadMesh(const char* meshName)
 {
+    //TODO Unsafe :(
     FILE* fptr;
     fptr = fopen(meshName, "r");
 
+    //TODO change it so it will do this stuff dynamically
     vec3d* tmpVerts = malloc(sizeof(vec3d*) * 100000);
     int tmpVertsCount = 0;
 
     triangle * tmpTris = malloc(sizeof(triangle*) * 100000);
     int tmpTrisCount = 0;
 
+    //Reads over every line of the file
     char line[256];
     while (fgets(line, sizeof(line), fptr))
     {
         line[strcspn(line, "\n")] = 0;
 
+        //Line describes a vertex
         if(line[0] == 'v')
         {
             char* delim = {" "};
 
+            //TODO do this stuff right
             char *ptr = strtok(line , delim);
             ptr = strtok(NULL, delim);
             float f1 = strtof(ptr, NULL);
@@ -38,10 +44,12 @@ mesh* LoadMesh(const char* meshName)
             tmpVerts[tmpVertsCount].z = f3;
             tmpVerts[tmpVertsCount].w = 1;
         }
-        if(line[0] == 'f')
+        //line describes a triangle
+        else if(line[0] == 'f')
         {
             char* delim = {" "};
 
+            //TODO do this stuff right
             char *ptr = strtok(line , delim);
             ptr = strtok(NULL, delim);
             int i1 = atoi(ptr);
@@ -60,6 +68,7 @@ mesh* LoadMesh(const char* meshName)
     fclose(fptr);
     free(tmpVerts);
 
+    //Build the actual Mesh
     mesh* m = malloc(sizeof(mesh));
 
     m->triCount = tmpTrisCount;
@@ -69,9 +78,10 @@ mesh* LoadMesh(const char* meshName)
     m->worldPos.z = 0.0f;
     m->worldPos.w = 1.0f;
 
-    for (int i = 0; i < tmpTrisCount; ++i) {
+    //Copy all the data into the Mesh
+    for (int i = 0; i < tmpTrisCount; ++i)
+    {
         memcpy(&m->tris[i], &tmpTris[i], sizeof(triangle));
-        //printf("m[%d]:\n - v1: %f %f %f\n - v2: %f %f %f\n - v3: %f %f %f\n\n", i, m->tris->p[0].x, m->tris->p[0].y, m->tris->p[0].z, m->tris->p[1].x, m->tris->p[1].y, m->tris->p[1].z, m->tris->p[2].x, m->tris->p[2].y, m->tris->p[2].z);
     }
 
     return m;

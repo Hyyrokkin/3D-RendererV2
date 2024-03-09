@@ -22,6 +22,7 @@ static float  pitch = 0.0f;
 static void RenderMesh(mesh* meshToRender, int meshId);
 static void HandleInputs();
 
+//Function gets called only once at Project startup
 void Setup()
 {
     printf("[3D Render] - Started Setup\n");
@@ -38,6 +39,7 @@ void Setup()
     printf("[3D Render] - Finished Setup\n");
 }
 
+//Function that gets called every Frame
 void Update()
 {
     ClearBackground(DARKGRAY);
@@ -45,7 +47,7 @@ void Update()
 
     HandleInputs();
 
-
+    //Render All Meshes
     for (int i = 0; i < meshCount; ++i) {
         RenderMesh(meshList[i], i);
     }
@@ -55,6 +57,7 @@ static void HandleInputs()
 {
     vec3d forward, right, up;
 
+    //Get current cam dir vectors
     CopyVector(&forward, lookDir);
     CrossProduct(&right, lookDir, (vec3d) {0.0f, 1.0f, 0.0f, 1.0f});
     CrossProduct(&up, lookDir, right);
@@ -63,10 +66,12 @@ static void HandleInputs()
     NormalizeVector(&right);
     NormalizeVector(&up);
 
+    //Scale them by move speed and delta time
     MultiplyVector(&forward, forward, HOR_MOVE_SPEED * GetFrameTime());
     MultiplyVector(&right, right, HOR_MOVE_SPEED * GetFrameTime());
     MultiplyVector(&up, up, VERT_MOVE_SPEED * GetFrameTime());
 
+    //Move stuff if key is pressed
     if(IsKeyDown(KEY_W))
         AddVector(&camera, camera, forward);
 
@@ -99,11 +104,14 @@ static void HandleInputs()
         pitch -= TURN_SPEED * GetFrameTime();
 }
 
+//Render one Mesh at a time
+//TODO Make them Render all at once (possible?)
 static void RenderMesh(mesh* meshToRender, int meshId)
 {
     triangle** trisToRaster = malloc(sizeof(triangle*) * meshToRender->triCount);
     int trisToRasterCount = 0;
 
+    //Setup rotation and translation matrices
     mat4x4 matRotZ, matRotY, matRotX, matTrans;
 
     MakeMatRotZ(&matRotZ, 0.0f);
@@ -119,6 +127,9 @@ static void RenderMesh(mesh* meshToRender, int meshId)
     MultiplyMatrixMatrix(&matWorld, matWorld, matRotX);
     MultiplyMatrixMatrix(&matWorld, matWorld, matTrans);
 
+
+    //Setup Camera and update look dir
+    //TODO dont do this every mesh (?)
     vec3d up = {0.0f, -1.0f, 0.0f, 1.0f};
     NormalizeVector(&up);
 
@@ -135,12 +146,15 @@ static void RenderMesh(mesh* meshToRender, int meshId)
     MakeMatPointAt(&matCamera, camera, target, up);
     MatrixQuickInverse(&matView, &matCamera);
 
+    //Do the render stuff for every triangle in the Mesh
     for (int i = 0; i < meshToRender->triCount; ++i)
     {
+        //Move the Triangle from Object space to World space
         triangle triTransformed, triViewed, triProjected;
 
         MultiplyTriangleMatrix(triTransformed.p, meshToRender->tris[i].p, matWorld);
 
+        //Calculate the Normal for the Triangle
         vec3d normal, line1, line2, cameraRay;
 
         SubVector(&line1, triTransformed.p[1], triTransformed.p[0]);
@@ -151,17 +165,21 @@ static void RenderMesh(mesh* meshToRender, int meshId)
 
         SubVector(&cameraRay, triTransformed.p[0], camera);
 
+        //Only work on the Triangle if it can be seen from the Camera
         if(DotProduct(normal, cameraRay) < 0.0f)
         {
+            //Do lighting Stuff
             vec3d lightDir = {0.0f, 0.0f , -1.0f, 1.0f};
             NormalizeVector(&lightDir);
 
             int lightIntensity = (int)MapFrom0To1(fabsf(DotProduct(lightDir, normal)), 20.0f, 255.0f);
             SetTriColor(&triTransformed, lightIntensity, lightIntensity, lightIntensity, 255);
 
+            //Bring Triangle to View space
             MultiplyTriangleMatrix(triViewed.p, triTransformed.p, matView);
             SetTriColorFromTri(&triViewed, &triTransformed);
 
+            //Project Triangle
             MultiplyTriangleMatrix(triProjected.p, triViewed.p, matProj);
             SetTriColorFromTri(&triProjected, &triViewed);
 
@@ -169,6 +187,7 @@ static void RenderMesh(mesh* meshToRender, int meshId)
             DivideVector(&triProjected.p[1], triProjected.p[1], triProjected.p[1].w);
             DivideVector(&triProjected.p[2], triProjected.p[2], triProjected.p[2].w);
 
+            //Move the Triangle to Screen space
             vec3d offset = {1.0f, 1.0f, 0.0f, 1.0f};
             AddTriangleVector(triProjected.p, triProjected.p, offset);
 
@@ -179,13 +198,16 @@ static void RenderMesh(mesh* meshToRender, int meshId)
             triProjected.p[2].x *= 0.5f * (float) WINDOW_WIDTH;
             triProjected.p[2].y *= 0.5f * (float) WINDOW_HEIGHT;
 
+            //Save Triangle for sorting (will be replaced)
             trisToRaster[trisToRasterCount] = CopyTriangel(&triProjected);
             trisToRasterCount++;
         }
     }
 
+    //Sort the Triangles with the painters algorithm
     qsort(trisToRaster, trisToRasterCount, sizeof(triangle*), triCompareFunc);
 
+    //Raster all the Triangles
     for (int i = 0; i < trisToRasterCount; ++i) {
         triangle toRaster = *trisToRaster[i];
 
@@ -197,12 +219,15 @@ static void RenderMesh(mesh* meshToRender, int meshId)
         //DrawTriangleLines(d0, d1, d2, BLACK);
     }
 
+    //Free all Triangles after drawing
+    //TODO Check for memory leaks :3
     for (int i = 0; i < trisToRasterCount; ++i) {
         free(trisToRaster[i]);
     }
     free(trisToRaster);
 }
 
+//Called at the end of the project to Free stuff
 void Exit()
 {
     for (int i = 0; i < meshCount; ++i) {
