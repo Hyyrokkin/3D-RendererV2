@@ -148,7 +148,7 @@ float DotProduct(const vec3d i1, const vec3d i2)
 
 float GetLengthVector(const vec3d v)
 {
-    return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);;
+    return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
 void NormalizeVector(vec3d* toNormalize)

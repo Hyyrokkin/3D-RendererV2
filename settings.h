@@ -11,6 +11,6 @@
 
 #define VERT_MOVE_SPEED 6.0f
 #define HOR_MOVE_SPEED 4.0f
-#define TURN_SPEED 2.0f
+#define TURN_SPEED 2.5f
 
 #endif //INC_3D_RENDER_SETTINGS_H
