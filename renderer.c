@@ -108,7 +108,7 @@ static void HandleInputs()
 //TODO Make them Render all at once (possible?)
 static void RenderMesh(mesh* meshToRender, int meshId)
 {
-    triangle** trisToRaster = malloc(sizeof(triangle*) * meshToRender->triCount);
+    triangle** trisToRaster = malloc(sizeof(triangle*) * meshToRender->triCount * 2);
     int trisToRasterCount = 0;
 
     //Setup rotation and translation matrices
@@ -137,8 +137,8 @@ static void RenderMesh(mesh* meshToRender, int meshId)
     mat4x4 matCameraRotY, matCameraRotX;
     MakeMatRotY(&matCameraRotY, yaw);
     MakeMatRotX(&matCameraRotX, pitch);
-    MultiplyMatrixVector(&lookDir, target, matCameraRotX);
-    MultiplyMatrixVector(&lookDir, lookDir, matCameraRotY);
+    MultiplyMatrixVector(&target, target, matCameraRotX);
+    MultiplyMatrixVector(&lookDir, target, matCameraRotY);
     NormalizeVector(&lookDir);
     AddVector(&target, camera, lookDir);
 
@@ -179,28 +179,35 @@ static void RenderMesh(mesh* meshToRender, int meshId)
             MultiplyTriangleMatrix(triViewed.p, triTransformed.p, matView);
             SetTriColorFromTri(&triViewed, &triTransformed);
 
-            //Project Triangle
-            MultiplyTriangleMatrix(triProjected.p, triViewed.p, matProj);
-            SetTriColorFromTri(&triProjected, &triViewed);
+            int clippedTris = 0;
+            triangle clipped[2];
+            clippedTris = TriangleClipWithPlane((vec3d){0.0f, 0.0f, NEAR_PLANE, 1.0f},(vec3d){0.0f, 0.0f, 1.0f, 1.0f}, &triViewed, &clipped[0], &clipped[1]);
 
-            DivideVector(&triProjected.p[0], triProjected.p[0], triProjected.p[0].w);
-            DivideVector(&triProjected.p[1], triProjected.p[1], triProjected.p[1].w);
-            DivideVector(&triProjected.p[2], triProjected.p[2], triProjected.p[2].w);
 
-            //Move the Triangle to Screen space
-            vec3d offset = {1.0f, 1.0f, 0.0f, 1.0f};
-            AddTriangleVector(triProjected.p, triProjected.p, offset);
+            for (int n = 0; n < clippedTris; n++) {
+                //Project Triangle
+                MultiplyTriangleMatrix(triProjected.p, clipped[n].p, matProj);
+                SetTriColorFromTri(&triProjected, &clipped[n]);
 
-            triProjected.p[0].x *= 0.5f * (float) WINDOW_WIDTH;
-            triProjected.p[0].y *= 0.5f * (float) WINDOW_HEIGHT;
-            triProjected.p[1].x *= 0.5f * (float) WINDOW_WIDTH;
-            triProjected.p[1].y *= 0.5f * (float) WINDOW_HEIGHT;
-            triProjected.p[2].x *= 0.5f * (float) WINDOW_WIDTH;
-            triProjected.p[2].y *= 0.5f * (float) WINDOW_HEIGHT;
+                DivideVector(&triProjected.p[0], triProjected.p[0], triProjected.p[0].w);
+                DivideVector(&triProjected.p[1], triProjected.p[1], triProjected.p[1].w);
+                DivideVector(&triProjected.p[2], triProjected.p[2], triProjected.p[2].w);
 
-            //Save Triangle for sorting (will be replaced)
-            trisToRaster[trisToRasterCount] = CopyTriangel(&triProjected);
-            trisToRasterCount++;
+                //Move the Triangle to Screen space
+                vec3d offset = {1.0f, 1.0f, 0.0f, 1.0f};
+                AddTriangleVector(triProjected.p, triProjected.p, offset);
+
+                triProjected.p[0].x *= 0.5f * (float) WINDOW_WIDTH;
+                triProjected.p[0].y *= 0.5f * (float) WINDOW_HEIGHT;
+                triProjected.p[1].x *= 0.5f * (float) WINDOW_WIDTH;
+                triProjected.p[1].y *= 0.5f * (float) WINDOW_HEIGHT;
+                triProjected.p[2].x *= 0.5f * (float) WINDOW_WIDTH;
+                triProjected.p[2].y *= 0.5f * (float) WINDOW_HEIGHT;
+
+                //Save Triangle for sorting (will be replaced)
+                trisToRaster[trisToRasterCount] = CopyTriangel(&triProjected);
+                trisToRasterCount++;
+            }
         }
     }
 

@@ -216,6 +216,108 @@ void AddTriangleVector(vec3d output[3], const vec3d i1[3], const vec3d i2)
 }
 
 
+void VectorIntersectPlane(vec3d* out, const vec3d planePoint, const vec3d planeNormalIn, const vec3d lineStart, const vec3d lineEnd)
+{
+    vec3d planeNormal;
+    CopyVector(&planeNormal, planeNormalIn);
+    NormalizeVector(&planeNormal);
+    float planeDot = -DotProduct(planeNormal, planePoint);
+    float ad = DotProduct(lineStart, planeNormal);
+    float bd = DotProduct(lineEnd, planeNormal);
+    float t = (-planeDot - ad) / (bd - ad);
+    vec3d lineStartToEnd;
+    SubVector(&lineStartToEnd, lineEnd, lineStart);
+    vec3d lineToIntersect;
+    MultiplyVector(&lineToIntersect, lineStartToEnd, t);
+    AddVector(out, lineStart, lineToIntersect);
+}
+
+static float dist(vec3d point, vec3d normal, vec3d  planePoint)
+{
+    vec3d n;
+    CopyVector(&n, normal);
+    NormalizeVector(&n);
+    return (n.x * point.x + n.y * point.y + n.z * point.z - DotProduct(n, planePoint));
+}
+
+int TriangleClipWithPlane(const vec3d planePoint, const vec3d planeNormalIn, triangle* triToCheck, triangle* triOut1, triangle* triOut2)
+{
+    vec3d planeNormal;
+    CopyVector(&planeNormal, planeNormalIn);
+    NormalizeVector(&planeNormal);
+
+    vec3d* insidePoint[3];
+    vec3d* outsidePoint[3];
+    int insidePointCount = 0;
+    int outsidePointCount = 0;
+
+    float d0 = dist(triToCheck->p[0], planeNormal, planePoint);
+    float d1 = dist(triToCheck->p[1], planeNormal, planePoint);
+    float d2 = dist(triToCheck->p[2], planeNormal, planePoint);
+
+    if (d0 >= 0)
+        insidePoint[insidePointCount++] = &triToCheck->p[0];
+    else
+        outsidePoint[outsidePointCount++] = &triToCheck->p[0];
+    if (d1 >= 0)
+        insidePoint[insidePointCount++] = &triToCheck->p[1];
+    else
+        outsidePoint[outsidePointCount++] = &triToCheck->p[1];
+    if (d2 >= 0)
+        insidePoint[insidePointCount++] = &triToCheck->p[2];
+    else
+        outsidePoint[outsidePointCount++] = &triToCheck->p[2];
+
+    if(insidePointCount == 0)
+    {
+        //Triangle completely outside
+        return 0;
+    }
+
+    if(insidePointCount == 3)
+    {
+        //Triangle completely inside
+        triOut1->p[0] = triToCheck->p[0];
+        triOut1->p[1] = triToCheck->p[1];
+        triOut1->p[2] = triToCheck->p[2];
+        triOut1->triColor = triToCheck->triColor;
+        return 1; //One valid
+    }
+
+    if(insidePointCount == 1 && outsidePointCount == 2)
+    {
+        //Make one new Triangle from the points
+        triOut1->triColor = triToCheck->triColor;
+
+        triOut1->p[0] = *insidePoint[0];
+        VectorIntersectPlane(&triOut1->p[1],planePoint, planeNormal, *insidePoint[0], *outsidePoint[0]);
+        VectorIntersectPlane(&triOut1->p[2],planePoint, planeNormal, *insidePoint[0], *outsidePoint[1]);
+
+        return 1;//One valid
+    }
+
+    if(insidePointCount == 2 && outsidePointCount == 1)
+    {
+        //Make two new Triangle from the points
+        triOut1->triColor = triToCheck->triColor;
+        triOut2->triColor = triToCheck->triColor;
+
+        triOut1->p[0] = *insidePoint[0];
+        triOut1->p[1] = *insidePoint[1];
+        VectorIntersectPlane(&triOut1->p[2],planePoint, planeNormal, *insidePoint[0], *outsidePoint[0]);
+
+        triOut2->p[0] = *insidePoint[0];
+        triOut2->p[1] = triOut1->p[2];
+        VectorIntersectPlane(&triOut2->p[2],planePoint, planeNormal, *insidePoint[1], *outsidePoint[0]);
+
+        return 2;//Two valid
+    }
+
+}
+
+
+
+
 float Map(const float value, const float fromStart, const float fromFinish, const float toStart, const float toFinish)
 {
     return (toStart + (value-fromStart)*(toFinish-toStart)/(fromFinish-fromStart));

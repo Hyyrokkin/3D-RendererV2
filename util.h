@@ -73,6 +73,10 @@ void MultiplyTriangleMatrix(vec3d output[3], const vec3d input[3], const mat4x4 
 void AddTriangleVector(vec3d output[3], const vec3d i1[3], const vec3d i2);
 
 
+void VectorIntersectPlane(vec3d* out, const vec3d planePoint, const vec3d planeNormalIn, const vec3d lineStart, const vec3d lineEnd);
+int TriangleClipWithPlane(const vec3d planePoint, const vec3d planeNormalIn, triangle* triToCheck, triangle* triOut1, triangle* triOut2);
+
+
 void SetTriColor(triangle* tri ,const unsigned char r, const unsigned char g, const unsigned char b, const unsigned char a);
 
 void SetTriColorFromTri(triangle* triTo ,const triangle* triFrom);
