@@ -30,7 +30,7 @@ void Setup()
     meshCount = 1;
     meshList = malloc(sizeof(mesh*)*meshCount);
 
-    meshList[0] = LoadMesh("C:\\Users\\Morit\\Downloads\\ProgrammShit\\C Shit\\3D_Render\\meshes\\lambo.obj");
+    meshList[0] = LoadMesh("C:\\Users\\Morit\\Downloads\\ProgrammShit\\C Shit\\3D_Render\\meshes\\spaceship.obj");
     meshList[0]->worldPos.z = 3.0f;
 
     float aspectRatio = WINDOW_HEIGHT / WINDOW_WIDTH;
@@ -194,8 +194,7 @@ static void RenderMesh(mesh* meshToRender, int meshId)
                 DivideVector(&triProjected.p[2], triProjected.p[2], triProjected.p[2].w);
 
                 //Move the Triangle to Screen space
-                vec3d offset = {1.0f, 1.0f, 0.0f, 1.0f};
-                AddTriangleVector(triProjected.p, triProjected.p, offset);
+                AddTriangleVector(triProjected.p, triProjected.p, (vec3d){1.0f, 1.0f, 0.0f, 1.0f});
 
                 triProjected.p[0].x *= 0.5f * (float) WINDOW_WIDTH;
                 triProjected.p[0].y *= 0.5f * (float) WINDOW_HEIGHT;
@@ -215,7 +214,7 @@ static void RenderMesh(mesh* meshToRender, int meshId)
     qsort(trisToRaster, trisToRasterCount, sizeof(triangle*), triCompareFunc);
 
     //Raster all the Triangles
-    for (int i = 0; i < trisToRasterCount; ++i) {
+    for (int i = 0; i < trisToRasterCount; i++) {
         triangle toRaster = *trisToRaster[i];
 
         Vector2 d0 = {toRaster.p[0].x, toRaster.p[0].y};
@@ -223,7 +222,10 @@ static void RenderMesh(mesh* meshToRender, int meshId)
         Vector2 d2 = {toRaster.p[2].x, toRaster.p[2].y};
 
         DrawTriangle(d0, d1, d2, toRaster.triColor);
-        //DrawTriangleLines(d0, d1, d2, BLACK);
+        //DrawTriangle(d0, d2, d1, toRaster.triColor);
+        #ifdef RENDER_DEBUG
+            DrawTriangleLines(d0, d1, d2, BLACK);
+        #endif
     }
 
     //Free all Triangles after drawing

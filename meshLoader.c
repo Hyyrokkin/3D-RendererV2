@@ -39,10 +39,7 @@ mesh* LoadMesh(const char* meshName)
             float f3 = strtof(ptr, NULL);
 
             tmpVertsCount++;
-            tmpVerts[tmpVertsCount].x = f1;
-            tmpVerts[tmpVertsCount].y = f2;
-            tmpVerts[tmpVertsCount].z = f3;
-            tmpVerts[tmpVertsCount].w = 1;
+            tmpVerts[tmpVertsCount] = (vec3d){f1, f2, f3, 1};
         }
         //line describes a triangle
         else if(line[0] == 'f')

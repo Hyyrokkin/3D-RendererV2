@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "util.h"
+#include "settings.h"
 
 void InitMatToZero(mat4x4* toZero)
 {
@@ -216,11 +217,8 @@ void AddTriangleVector(vec3d output[3], const vec3d i1[3], const vec3d i2)
 }
 
 
-void VectorIntersectPlane(vec3d* out, const vec3d planePoint, const vec3d planeNormalIn, const vec3d lineStart, const vec3d lineEnd)
+void LineIntersectPlane(vec3d* out, const vec3d planePoint, const vec3d planeNormal, const vec3d lineStart, const vec3d lineEnd)
 {
-    vec3d planeNormal;
-    CopyVector(&planeNormal, planeNormalIn);
-    NormalizeVector(&planeNormal);
     float planeDot = -DotProduct(planeNormal, planePoint);
     float ad = DotProduct(lineStart, planeNormal);
     float bd = DotProduct(lineEnd, planeNormal);
@@ -232,12 +230,9 @@ void VectorIntersectPlane(vec3d* out, const vec3d planePoint, const vec3d planeN
     AddVector(out, lineStart, lineToIntersect);
 }
 
-static float dist(vec3d point, vec3d normal, vec3d  planePoint)
+static float dist(vec3d point, vec3d planeNormal, vec3d  planePoint)
 {
-    vec3d n;
-    CopyVector(&n, normal);
-    NormalizeVector(&n);
-    return (n.x * point.x + n.y * point.y + n.z * point.z - DotProduct(n, planePoint));
+    return (planeNormal.x * point.x + planeNormal.y * point.y + planeNormal.z * point.z - DotProduct(planeNormal, planePoint));
 }
 
 int TriangleClipWithPlane(const vec3d planePoint, const vec3d planeNormalIn, triangle* triToCheck, triangle* triOut1, triangle* triOut2)
@@ -286,29 +281,52 @@ int TriangleClipWithPlane(const vec3d planePoint, const vec3d planeNormalIn, tri
 
     if(insidePointCount == 1 && outsidePointCount == 2)
     {
+        if(d1 >= 0)
+        {
+            vec3d* tmp = outsidePoint[0];
+            outsidePoint[0] = outsidePoint[1];
+            outsidePoint[1] = tmp;
+        }
         //Make one new Triangle from the points
-        triOut1->triColor = triToCheck->triColor;
+        #ifndef RENDER_DEBUG
+            triOut1->triColor = triToCheck->triColor;
+        #endif
+        #ifdef RENDER_DEBUG
+            triOut1->triColor = RED;
+        #endif
 
         triOut1->p[0] = *insidePoint[0];
-        VectorIntersectPlane(&triOut1->p[1],planePoint, planeNormal, *insidePoint[0], *outsidePoint[0]);
-        VectorIntersectPlane(&triOut1->p[2],planePoint, planeNormal, *insidePoint[0], *outsidePoint[1]);
+        LineIntersectPlane(&triOut1->p[1], planePoint, planeNormal, *insidePoint[0], *outsidePoint[0]);
+        LineIntersectPlane(&triOut1->p[2], planePoint, planeNormal, *insidePoint[0], *outsidePoint[1]);
 
         return 1;//One valid
     }
 
     if(insidePointCount == 2 && outsidePointCount == 1)
     {
+        if(d1 < 0)
+        {
+            vec3d* tmp = insidePoint[0];
+            insidePoint[0] = insidePoint[1];
+            insidePoint[1] = tmp;
+        }
         //Make two new Triangle from the points
-        triOut1->triColor = triToCheck->triColor;
-        triOut2->triColor = triToCheck->triColor;
+        #ifndef RENDER_DEBUG
+            triOut1->triColor = triToCheck->triColor;
+            triOut2->triColor = triToCheck->triColor;
+        #endif
+        #ifdef RENDER_DEBUG
+            triOut1->triColor = BLUE;
+            triOut2->triColor = LIME;
+        #endif
 
         triOut1->p[0] = *insidePoint[0];
         triOut1->p[1] = *insidePoint[1];
-        VectorIntersectPlane(&triOut1->p[2],planePoint, planeNormal, *insidePoint[0], *outsidePoint[0]);
+        LineIntersectPlane(&triOut1->p[2], planePoint, planeNormal, *insidePoint[0], *outsidePoint[0]);
 
-        triOut2->p[0] = *insidePoint[0];
-        triOut2->p[1] = triOut1->p[2];
-        VectorIntersectPlane(&triOut2->p[2],planePoint, planeNormal, *insidePoint[1], *outsidePoint[0]);
+        triOut2->p[0] = *insidePoint[1];
+        LineIntersectPlane(&triOut2->p[1], planePoint, planeNormal, *insidePoint[1], *outsidePoint[0]);
+        triOut2->p[2] = triOut1->p[2];
 
         return 2;//Two valid
     }
