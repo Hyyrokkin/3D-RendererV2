@@ -30,8 +30,8 @@ mesh* LoadMesh(const char* meshName)
             char* delim = {" "};
 
             //TODO do this stuff right
-            char *ptr = strtok(line , delim);
-            ptr = strtok(NULL, delim);
+            strtok(line , delim);
+            char *ptr = strtok(NULL, delim);
             float f1 = strtof(ptr, NULL);
             ptr = strtok(NULL, delim);
             float f2 = strtof(ptr, NULL);
@@ -47,13 +47,14 @@ mesh* LoadMesh(const char* meshName)
             char* delim = {" "};
 
             //TODO do this stuff right
-            char *ptr = strtok(line , delim);
+            strtok(line , delim);
+            char *end;
+            char *ptr = strtok(NULL, delim);
+            int i1 = strtol(ptr, &end, 10);
             ptr = strtok(NULL, delim);
-            int i1 = atoi(ptr);
+            int i2 = strtol(ptr, &end, 10);
             ptr = strtok(NULL, delim);
-            int i2 = atoi(ptr);
-            ptr = strtok(NULL, delim);
-            int i3 = atoi(ptr);
+            int i3 = strtol(ptr, &end, 10);
 
             tmpTris[tmpTrisCount].p[0] = tmpVerts[i1];
             tmpTris[tmpTrisCount].p[1] = tmpVerts[i2];
@@ -80,6 +81,7 @@ mesh* LoadMesh(const char* meshName)
     {
         memcpy(&m->tris[i], &tmpTris[i], sizeof(triangle));
     }
+    free(tmpTris);
 
     return m;
 }

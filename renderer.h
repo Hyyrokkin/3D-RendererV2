@@ -1,8 +1,4 @@
-#ifndef INC_3D_RENDER_RENDERER_H
-#define INC_3D_RENDER_RENDERER_H
+#pragma once
 
 void Setup();
 void Update();
-void Exit();
-
-#endif //INC_3D_RENDER_RENDERER_H

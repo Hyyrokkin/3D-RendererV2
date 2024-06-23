@@ -5,7 +5,7 @@
 #define WINDOW_TITLE_MAX_LENGTH 128
 #define WINDOW_WIDTH 1028.0f
 #define WINDOW_HEIGHT 720.0f
-#define NEAR_PLANE 1.1f
+#define NEAR_PLANE 0.1f
 #define FAR_PLANE 1000.0f
 #define FOV 90.0f
 

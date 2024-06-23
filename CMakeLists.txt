@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.26)
 project(3D_Render C)
 
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 23)
 
 # Generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

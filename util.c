@@ -4,19 +4,8 @@
 #include "util.h"
 #include "settings.h"
 
-void InitMatToZero(mat4x4* toZero)
-{
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            toZero->m[i][j] = 0;
-        }
-    }
-}
-
 void MakeMatIdentity(mat4x4* matrix)
 {
-    InitMatToZero(matrix);
-
     matrix->m[0][0] = 1.0f;
     matrix->m[1][1] = 1.0f;
     matrix->m[2][2] = 1.0f;
@@ -25,8 +14,6 @@ void MakeMatIdentity(mat4x4* matrix)
 
 void MakeMatRotX(mat4x4* matrix, float angleRad)
 {
-    InitMatToZero(matrix);
-
     matrix->m[0][0] = 1.0f;
     matrix->m[1][1] = cosf(angleRad);
     matrix->m[1][2] = sinf(angleRad);
@@ -37,8 +24,6 @@ void MakeMatRotX(mat4x4* matrix, float angleRad)
 
 void MakeMatRotY(mat4x4* matrix, float angleRad)
 {
-    InitMatToZero(matrix);
-
     matrix->m[0][0] = cosf(angleRad);
     matrix->m[0][2] = sinf(angleRad);
     matrix->m[2][0] = -sinf(angleRad);
@@ -49,8 +34,6 @@ void MakeMatRotY(mat4x4* matrix, float angleRad)
 
 void MakeMatRotZ(mat4x4* matrix, float angleRad)
 {
-    InitMatToZero(matrix);
-
     matrix->m[0][0] = cosf(angleRad);
     matrix->m[0][1] = sinf(angleRad);
     matrix->m[1][0] = -sinf(angleRad);
@@ -59,17 +42,15 @@ void MakeMatRotZ(mat4x4* matrix, float angleRad)
     matrix->m[3][3] = 1.0f;
 }
 
-void MakeMatTranslate(mat4x4* matrix, vec3d pos)
+void MakeMatTranslate(mat4x4* matrix, const vec3d* pos)
 {
-    InitMatToZero(matrix);
-
     matrix->m[0][0] = 1.0f;
     matrix->m[1][1] = 1.0f;
     matrix->m[2][2] = 1.0f;
     matrix->m[3][3] = 1.0f;
-    matrix->m[3][0] = pos.x;
-    matrix->m[3][1] = pos.y;
-    matrix->m[3][2] = pos.z;
+    matrix->m[3][0] = pos->x;
+    matrix->m[3][1] = pos->y;
+    matrix->m[3][2] = pos->z;
 }
 
 void MakeMatProjection(mat4x4* matrix, float fov, float aspectRatio,  float nearPlane, float farPlane)
@@ -84,26 +65,24 @@ void MakeMatProjection(mat4x4* matrix, float fov, float aspectRatio,  float near
     matrix->m[3][3] = 0.0f;
 }
 
-void MakeMatPointAt(mat4x4* matrix, vec3d pos, vec3d target, vec3d up)
+void MakeMatPointAt(mat4x4* matrix, const vec3d* pos, const vec3d* target, const vec3d* up)
 {
-    InitMatToZero(matrix);
-
     vec3d newForward;
     SubVector(&newForward, target, pos);
     NormalizeVector(&newForward);
 
     vec3d upChange, newUp;
-    MultiplyVector(&upChange, newForward, DotProduct(up, newForward));
-    SubVector(&newUp, up, upChange);
+    MultiplyVector(&upChange, &newForward, DotProduct(up, &newForward));
+    SubVector(&newUp, up, &upChange);
     NormalizeVector(&newUp);
 
     vec3d newRight;
-    CrossProduct(&newRight, newUp, newForward);
+    CrossProduct(&newRight, &newUp, &newForward);
 
     matrix->m[0][0] = newRight.x;	matrix->m[0][1] = newRight.y;	matrix->m[0][2] = newRight.z;	matrix->m[0][3] = 0.0f;
     matrix->m[1][0] = newUp.x;		matrix->m[1][1] = newUp.y;		matrix->m[1][2] = newUp.z;		matrix->m[1][3] = 0.0f;
     matrix->m[2][0] = newForward.x;	matrix->m[2][1] = newForward.y;	matrix->m[2][2] = newForward.z;	matrix->m[2][3] = 0.0f;
-    matrix->m[3][0] = pos.x;		matrix->m[3][1] = pos.y;		matrix->m[3][2] = pos.z;		matrix->m[3][3] = 1.0f;
+    matrix->m[3][0] = pos->x;		matrix->m[3][1] = pos->y;		matrix->m[3][2] = pos->z;		matrix->m[3][3] = 1.0f;
 }
 
 void MatrixQuickInverse(mat4x4* output, mat4x4* toInvert) // Only for Rotation/Translation Matrices
@@ -118,43 +97,43 @@ void MatrixQuickInverse(mat4x4* output, mat4x4* toInvert) // Only for Rotation/T
 }
 
 
-void MultiplyMatrixMatrix(mat4x4* output, const mat4x4 input1, const mat4x4 input2)
+void MultiplyMatrixMatrix(mat4x4* output, const mat4x4* input1, const mat4x4* input2)
 {
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
-            output->m[i][j] = input1.m[i][0] * input2.m[0][j] + input1.m[i][1] * input2.m[1][j] + input1.m[i][2] * input2.m[2][j] + input1.m[i][3] * input2.m[3][j];
+            output->m[i][j] = input1->m[i][0] * input2->m[0][j] + input1->m[i][1] * input2->m[1][j] + input1->m[i][2] * input2->m[2][j] + input1->m[i][3] * input2->m[3][j];
         }
     }
 }
 
-void MultiplyMatrixVector(vec3d* output, const vec3d input, const mat4x4 matrix)
+void MultiplyMatrixVector(vec3d* output, const vec3d* input, const mat4x4* matrix)
 {
-    output->x = input.x * matrix.m[0][0] + input.y * matrix.m[1][0] + input.z * matrix.m[2][0] + input.w * matrix.m[3][0];
-    output->y = input.x * matrix.m[0][1] + input.y * matrix.m[1][1] + input.z * matrix.m[2][1] + input.w * matrix.m[3][1];
-    output->z = input.x * matrix.m[0][2] + input.y * matrix.m[1][2] + input.z * matrix.m[2][2] + input.w * matrix.m[3][2];
-    output->w = input.x * matrix.m[0][3] + input.y * matrix.m[1][3] + input.z * matrix.m[2][3] + input.w * matrix.m[3][3];
+    output->x = input->x * matrix->m[0][0] + input->y * matrix->m[1][0] + input->z * matrix->m[2][0] + input->w * matrix->m[3][0];
+    output->y = input->x * matrix->m[0][1] + input->y * matrix->m[1][1] + input->z * matrix->m[2][1] + input->w * matrix->m[3][1];
+    output->z = input->x * matrix->m[0][2] + input->y * matrix->m[1][2] + input->z * matrix->m[2][2] + input->w * matrix->m[3][2];
+    output->w = input->x * matrix->m[0][3] + input->y * matrix->m[1][3] + input->z * matrix->m[2][3] + input->w * matrix->m[3][3];
 }
 
-void CrossProduct(vec3d* output, const vec3d i1, const vec3d i2)
+void CrossProduct(vec3d* output, const vec3d* i1, const vec3d* i2)
 {
-    output->x = i1.y * i2.z - i1.z * i2.y;
-    output->y = i1.z * i2.x - i1.x * i2.z;
-    output->z = i1.x * i2.y - i1.y * i2.x;
+    output->x = i1->y * i2->z - i1->z * i2->y;
+    output->y = i1->z * i2->x - i1->x * i2->z;
+    output->z = i1->x * i2->y - i1->y * i2->x;
 }
 
-float DotProduct(const vec3d i1, const vec3d i2)
+float DotProduct(const vec3d* i1, const vec3d* i2)
 {
-    return i1.x * i2.x + i1.y * i2.y + i1.z * i2.z;
+    return i1->x * i2->x + i1->y * i2->y + i1->z * i2->z;
 }
 
-float GetLengthVector(const vec3d v)
+float GetLengthVector(const vec3d* v)
 {
-    return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
+    return sqrtf(v->x * v->x + v->y * v->y + v->z * v->z);
 }
 
 void NormalizeVector(vec3d* toNormalize)
 {
-    float l = GetLengthVector(*toNormalize);
+    float l = GetLengthVector(toNormalize);
     if(l != 0)
     {
         toNormalize->x /= l;
@@ -163,61 +142,61 @@ void NormalizeVector(vec3d* toNormalize)
     }
 }
 
-void CopyVector(vec3d* out, const vec3d in)
+void CopyVector(vec3d* out, const vec3d* in)
 {
-    out->x = in.x;
-    out->y = in.y;
-    out->z = in.z;
-    out->w = in.w;
+    out->x = in->x;
+    out->y = in->y;
+    out->z = in->z;
+    out->w = in->w;
 }
 
-void AddVector(vec3d* output, const vec3d i1, const vec3d i2)
+void AddVector(vec3d* output, const vec3d* i1, const vec3d* i2)
 {
-    output->x = i1.x + i2.x;
-    output->y = i1.y + i2.y;
-    output->z = i1.z + i2.z;
+    output->x = i1->x + i2->x;
+    output->y = i1->y + i2->y;
+    output->z = i1->z + i2->z;
 }
 
-void SubVector(vec3d* output, const vec3d i1, const vec3d i2)
+void SubVector(vec3d* output, const vec3d* i1, const vec3d* i2)
 {
-    output->x = i1.x - i2.x;
-    output->y = i1.y - i2.y;
-    output->z = i1.z - i2.z;
+    output->x = i1->x - i2->x;
+    output->y = i1->y - i2->y;
+    output->z = i1->z - i2->z;
 }
 
-void MultiplyVector(vec3d* output, const vec3d input, const float k)
+void MultiplyVector(vec3d* output, const vec3d* input, const float k)
 {
-    output->x = input.x * k;
-    output->y = input.y * k;
-    output->z = input.z * k;
+    output->x = input->x * k;
+    output->y = input->y * k;
+    output->z = input->z * k;
 }
 
-void DivideVector(vec3d* output, const vec3d input, const float k)
+void DivideVector(vec3d* output, const vec3d* input, const float k)
 {
     if(k != 0)
     {
-        output->x = input.x / k;
-        output->y = input.y / k;
-        output->z = input.z / k;
+        output->x = input->x / k;
+        output->y = input->y / k;
+        output->z = input->z / k;
     }
 }
 
-void MultiplyTriangleMatrix(vec3d output[3], const vec3d input[3], const mat4x4 matrix)
+void MultiplyTriangleMatrix(vec3d output[3], const vec3d input[3], const mat4x4* matrix)
 {
-    MultiplyMatrixVector(&output[0], input[0], matrix);
-    MultiplyMatrixVector(&output[1], input[1], matrix);
-    MultiplyMatrixVector(&output[2], input[2], matrix);
+    MultiplyMatrixVector(&output[0], &input[0], matrix);
+    MultiplyMatrixVector(&output[1], &input[1], matrix);
+    MultiplyMatrixVector(&output[2], &input[2], matrix);
 }
 
-void AddTriangleVector(vec3d output[3], const vec3d i1[3], const vec3d i2)
+void AddTriangleVector(vec3d output[3], const vec3d i1[3], const vec3d* i2)
 {
-    AddVector(&output[0], i1[0], i2);
-    AddVector(&output[1], i1[1], i2);
-    AddVector(&output[2], i1[2], i2);
+    AddVector(&output[0], &i1[0], i2);
+    AddVector(&output[1], &i1[1], i2);
+    AddVector(&output[2], &i1[2], i2);
 }
 
 
-void LineIntersectPlane(vec3d* out, const vec3d planePoint, const vec3d planeNormal, const vec3d lineStart, const vec3d lineEnd)
+void LineIntersectPlane(vec3d* out, const vec3d* planePoint, const vec3d* planeNormal, const vec3d* lineStart, const vec3d* lineEnd)
 {
     float planeDot = -DotProduct(planeNormal, planePoint);
     float ad = DotProduct(lineStart, planeNormal);
@@ -226,42 +205,42 @@ void LineIntersectPlane(vec3d* out, const vec3d planePoint, const vec3d planeNor
     vec3d lineStartToEnd;
     SubVector(&lineStartToEnd, lineEnd, lineStart);
     vec3d lineToIntersect;
-    MultiplyVector(&lineToIntersect, lineStartToEnd, t);
-    AddVector(out, lineStart, lineToIntersect);
+    MultiplyVector(&lineToIntersect, &lineStartToEnd, t);
+    AddVector(out, lineStart, &lineToIntersect);
 }
 
-static float dist(vec3d point, vec3d planeNormal, vec3d  planePoint)
+static float dist(const vec3d* point, const vec3d* planeNormal, const vec3d* planePoint)
 {
-    return (planeNormal.x * point.x + planeNormal.y * point.y + planeNormal.z * point.z - DotProduct(planeNormal, planePoint));
+    return (planeNormal->x * point->x + planeNormal->y * point->y + planeNormal->z * point->z - DotProduct(planeNormal, planePoint));
 }
 
 int TriangleClipWithPlane(const vec3d planePoint, const vec3d planeNormalIn, triangle* triToCheck, triangle* triOut1, triangle* triOut2)
 {
     vec3d planeNormal;
-    CopyVector(&planeNormal, planeNormalIn);
+    CopyVector(&planeNormal, &planeNormalIn);
     NormalizeVector(&planeNormal);
 
-    vec3d* insidePoint[3];
-    vec3d* outsidePoint[3];
+    vec3d insidePoint[3];
+    vec3d outsidePoint[3];
     int insidePointCount = 0;
     int outsidePointCount = 0;
 
-    float d0 = dist(triToCheck->p[0], planeNormal, planePoint);
-    float d1 = dist(triToCheck->p[1], planeNormal, planePoint);
-    float d2 = dist(triToCheck->p[2], planeNormal, planePoint);
+    float d0 = dist(&triToCheck->p[0], &planeNormal, &planePoint);
+    float d1 = dist(&triToCheck->p[1], &planeNormal, &planePoint);
+    float d2 = dist(&triToCheck->p[2], &planeNormal, &planePoint);
 
     if (d0 >= 0)
-        insidePoint[insidePointCount++] = &triToCheck->p[0];
+        insidePoint[insidePointCount++] = triToCheck->p[0];
     else
-        outsidePoint[outsidePointCount++] = &triToCheck->p[0];
+        outsidePoint[outsidePointCount++] = triToCheck->p[0];
     if (d1 >= 0)
-        insidePoint[insidePointCount++] = &triToCheck->p[1];
+        insidePoint[insidePointCount++] = triToCheck->p[1];
     else
-        outsidePoint[outsidePointCount++] = &triToCheck->p[1];
+        outsidePoint[outsidePointCount++] = triToCheck->p[1];
     if (d2 >= 0)
-        insidePoint[insidePointCount++] = &triToCheck->p[2];
+        insidePoint[insidePointCount++] = triToCheck->p[2];
     else
-        outsidePoint[outsidePointCount++] = &triToCheck->p[2];
+        outsidePoint[outsidePointCount++] = triToCheck->p[2];
 
     if(insidePointCount == 0)
     {
@@ -283,7 +262,7 @@ int TriangleClipWithPlane(const vec3d planePoint, const vec3d planeNormalIn, tri
     {
         if(d1 >= 0)
         {
-            vec3d* tmp = outsidePoint[0];
+            vec3d tmp = outsidePoint[0];
             outsidePoint[0] = outsidePoint[1];
             outsidePoint[1] = tmp;
         }
@@ -295,9 +274,9 @@ int TriangleClipWithPlane(const vec3d planePoint, const vec3d planeNormalIn, tri
             triOut1->triColor = RED;
         #endif
 
-        triOut1->p[0] = *insidePoint[0];
-        LineIntersectPlane(&triOut1->p[1], planePoint, planeNormal, *insidePoint[0], *outsidePoint[0]);
-        LineIntersectPlane(&triOut1->p[2], planePoint, planeNormal, *insidePoint[0], *outsidePoint[1]);
+        triOut1->p[0] = insidePoint[0];
+        LineIntersectPlane(&triOut1->p[1], &planePoint, &planeNormal, &insidePoint[0], &outsidePoint[0]);
+        LineIntersectPlane(&triOut1->p[2], &planePoint, &planeNormal, &insidePoint[0], &outsidePoint[1]);
 
         return 1;//One valid
     }
@@ -306,7 +285,7 @@ int TriangleClipWithPlane(const vec3d planePoint, const vec3d planeNormalIn, tri
     {
         if(d1 < 0)
         {
-            vec3d* tmp = insidePoint[0];
+            vec3d tmp = insidePoint[0];
             insidePoint[0] = insidePoint[1];
             insidePoint[1] = tmp;
         }
@@ -320,17 +299,18 @@ int TriangleClipWithPlane(const vec3d planePoint, const vec3d planeNormalIn, tri
             triOut2->triColor = LIME;
         #endif
 
-        triOut1->p[0] = *insidePoint[0];
-        triOut1->p[1] = *insidePoint[1];
-        LineIntersectPlane(&triOut1->p[2], planePoint, planeNormal, *insidePoint[0], *outsidePoint[0]);
+        triOut1->p[0] = insidePoint[0];
+        triOut1->p[1] = insidePoint[1];
+        LineIntersectPlane(&triOut1->p[2], &planePoint, &planeNormal, &insidePoint[0], &outsidePoint[0]);
 
-        triOut2->p[0] = *insidePoint[1];
-        LineIntersectPlane(&triOut2->p[1], planePoint, planeNormal, *insidePoint[1], *outsidePoint[0]);
+        triOut2->p[0] = insidePoint[1];
+        LineIntersectPlane(&triOut2->p[1], &planePoint, &planeNormal, &insidePoint[1], &outsidePoint[0]);
         triOut2->p[2] = triOut1->p[2];
 
         return 2;//Two valid
     }
 
+    return -1;
 }
 
 
@@ -375,8 +355,8 @@ int triCompareFunc(const void * a, const void * b)
 {
     triangle t1 = **((triangle**) a);
     triangle t2 = **((triangle**) b);
-    float t1z = ((t1.p[0].z + t1.p[1].z + t1.p[2].z)/3);
-    float t2z = ((t2.p[0].z + t2.p[1].z + t2.p[2].z)/3);
+    float t1z = ((t1.p[0].z + t1.p[1].z + t1.p[2].z));
+    float t2z = ((t2.p[0].z + t2.p[1].z + t2.p[2].z));
 
     if (t1z == t2z)
     {

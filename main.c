@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "raylib.h"
+
 #include "renderer.h"
 #include "settings.h"
 
@@ -13,10 +13,10 @@ int main()
 
     char* windowTitle = (char *) malloc(WINDOW_TITLE_MAX_LENGTH);
 
-    //Clear reset window title and redraw screen
+    //reset window title and redraw screen
     while(!WindowShouldClose())
     {
-        sprintf(windowTitle, "%s   FPS: %5d Frame Time: %5f", WINDOW_TITLE, GetFPS(), GetFrameTime());
+        sprintf_s(windowTitle, WINDOW_TITLE_MAX_LENGTH,"%s   FPS: %5d Frame Time: %5f", WINDOW_TITLE, GetFPS(), GetFrameTime());
         SetWindowTitle(windowTitle);
 
         BeginDrawing();
@@ -26,10 +26,6 @@ int main()
         EndDrawing();
     }
 
-    //Cleanup raylib and project and free window title
+    //Cleanup raylib
     CloseWindow();
-    Exit();
-    free(windowTitle);
-
-    return 0;
 }
