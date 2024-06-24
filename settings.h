@@ -1,18 +1,18 @@
-#ifndef INC_3D_RENDER_SETTINGS_H
-#define INC_3D_RENDER_SETTINGS_H
+#pragma once
+#include <stddef.h>
 
 #define WINDOW_TITLE "3D Renderer"
-#define WINDOW_TITLE_MAX_LENGTH 128
-#define WINDOW_WIDTH 1028.0f
-#define WINDOW_HEIGHT 720.0f
-#define NEAR_PLANE 0.1f
-#define FAR_PLANE 1000.0f
-#define FOV 90.0f
+constexpr int WINDOW_TITLE_MAX_LENGTH = 128;
+constexpr float WINDOW_WIDTH = 1028.0f;
+constexpr float WINDOW_HEIGHT = 720.0f;
+constexpr float NEAR_PLANE = 0.1f;
+constexpr float FAR_PLANE = 1000.0f;
+constexpr float FOV = 90.0f;
 
-#define VERT_MOVE_SPEED 6.0f
-#define HOR_MOVE_SPEED 4.0f
-#define TURN_SPEED 2.5f
+
+constexpr float VERT_MOVE_SPEED = 6.0f;
+constexpr float HOR_MOVE_SPEED = 4.0f;
+constexpr float TURN_SPEED = 2.5f;
 
 #define RENDER_DEBUG
 
-#endif //INC_3D_RENDER_SETTINGS_H

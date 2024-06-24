@@ -48,7 +48,8 @@ void Update()
     HandleInputs();
 
     //Render All Meshes
-    for (int i = 0; i < meshCount; ++i) {
+    for (int i = 0; i < meshCount; ++i)
+    {
         RenderMesh(meshList[i], i);
     }
 }
@@ -191,12 +192,12 @@ static void RenderMesh(mesh* meshToRender, int meshId)
             MultiplyTriangleMatrix(triViewed.p, triTransformed.p, &matView);
             SetTriColorFromTri(&triViewed, &triTransformed);
 
-            int clippedTris;
             triangle clipped[2] = { 0 };
-            clippedTris = TriangleClipWithPlane((vec3d){0.0f, 0.0f, NEAR_PLANE, 1.0f},(vec3d){0.0f, 0.0f, 1.0f, 1.0f}, &triViewed, &clipped[0], &clipped[1]);
+            int clippedTris = TriangleClipWithPlane((vec3d){0.0f, 0.0f, NEAR_PLANE, 1.0f},(vec3d){0.0f, 0.0f, 1.0f, 1.0f}, &triViewed, &clipped[0], &clipped[1]);
 
 
-            for (int n = 0; n < clippedTris; n++) {
+            for (int n = 0; n < clippedTris; n++)
+            {
                 //Project Triangle
                 MultiplyTriangleMatrix(triProjected.p, clipped[n].p, &matProj);
                 SetTriColorFromTri(&triProjected, &clipped[n]);
@@ -208,12 +209,12 @@ static void RenderMesh(mesh* meshToRender, int meshId)
                 //Move the Triangle to Screen space
                 AddTriangleVector(triProjected.p, triProjected.p, &(vec3d){1.0f, 1.0f, 0.0f, 1.0f});
 
-                triProjected.p[0].x *= 0.5f * (float) WINDOW_WIDTH;
-                triProjected.p[0].y *= 0.5f * (float) WINDOW_HEIGHT;
-                triProjected.p[1].x *= 0.5f * (float) WINDOW_WIDTH;
-                triProjected.p[1].y *= 0.5f * (float) WINDOW_HEIGHT;
-                triProjected.p[2].x *= 0.5f * (float) WINDOW_WIDTH;
-                triProjected.p[2].y *= 0.5f * (float) WINDOW_HEIGHT;
+                triProjected.p[0].x *= 0.5f * WINDOW_WIDTH;
+                triProjected.p[0].y *= 0.5f * WINDOW_HEIGHT;
+                triProjected.p[1].x *= 0.5f * WINDOW_WIDTH;
+                triProjected.p[1].y *= 0.5f * WINDOW_HEIGHT;
+                triProjected.p[2].x *= 0.5f * WINDOW_WIDTH;
+                triProjected.p[2].y *= 0.5f * WINDOW_HEIGHT;
 
                 //Save Triangle for sorting (will be replaced)
                 CopyTriangel(&trisToRaster[trisToRasterCount],&triProjected);
@@ -226,7 +227,8 @@ static void RenderMesh(mesh* meshToRender, int meshId)
     qsort(trisToRaster, trisToRasterCount, sizeof(triangle), TriCompareFunc);
 
     //Raster all the Triangles
-    for (int i = 0; i < trisToRasterCount; i++) {
+    for (int i = 0; i < trisToRasterCount; i++)
+    {
         triangle toRaster = trisToRaster[i];
 
         Vector2 d0 = {toRaster.p[0].x, toRaster.p[0].y};
@@ -247,7 +249,8 @@ static void RenderMesh(mesh* meshToRender, int meshId)
 //Called at the end of the project to Free stuff
 void Exit()
 {
-    for (int i = 0; i < meshCount; ++i) {
+    for (int i = 0; i < meshCount; ++i)
+    {
         FreeMesh(meshList[i]);
     }
     free(meshList);
