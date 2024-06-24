@@ -246,3 +246,12 @@ static void RenderMesh(mesh* meshToRender, int meshId)
     }
     free(trisToRaster);
 }
+
+//Called at the end of the project to Free stuff
+void Exit()
+{
+    for (int i = 0; i < meshCount; ++i) {
+        FreeMesh(meshList[i]);
+    }
+    free(meshList);
+}

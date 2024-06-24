@@ -28,4 +28,6 @@ int main()
 
     //Cleanup raylib
     CloseWindow();
+    Exit();
+    return 0;
 }
