@@ -339,22 +339,19 @@ void SetTriColorFromTri(triangle* triTo , const triangle* triFrom)
     SetTriColor(triTo, triFrom->triColor.r, triFrom->triColor.g, triFrom->triColor.b, triFrom->triColor.a);
 }
 
-triangle* CopyTriangel(const triangle* toCopy)
+void CopyTriangel(triangle* out, const triangle* toCopy)
 {
-    triangle* output = (triangle*) malloc(sizeof(triangle));
-    output->triColor = toCopy->triColor;
-    output->p[0] = toCopy->p[0];
-    output->p[1] = toCopy->p[1];
-    output->p[2] = toCopy->p[2];
-
-    return output;
+    out->triColor = toCopy->triColor;
+    out->p[0] = toCopy->p[0];
+    out->p[1] = toCopy->p[1];
+    out->p[2] = toCopy->p[2];
 }
 
 //for the painters sort algo
-int triCompareFunc(const void * a, const void * b)
+int TriCompareFunc(const void * a, const void * b)
 {
-    triangle t1 = **((triangle**) a);
-    triangle t2 = **((triangle**) b);
+    triangle t1 = *((triangle*) a);
+    triangle t2 = *((triangle*) b);
     float t1z = ((t1.p[0].z + t1.p[1].z + t1.p[2].z));
     float t2z = ((t2.p[0].z + t2.p[1].z + t2.p[2].z));
 

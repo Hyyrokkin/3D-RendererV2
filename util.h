@@ -78,9 +78,9 @@ void SetTriColor(triangle* tri ,unsigned char r, unsigned char g, unsigned char 
 
 void SetTriColorFromTri(triangle* triTo ,const triangle* triFrom);
 
-triangle* CopyTriangel(const triangle* toCopy);
+void CopyTriangel(triangle* out, const triangle* toCopy);
 
-int triCompareFunc(const void * a, const void * b);
+int TriCompareFunc(const void * a, const void * b);
 
 float Map(float value, float fromStart, float fromFinish, float toStart, float toFinish);
 

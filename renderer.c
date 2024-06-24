@@ -110,7 +110,7 @@ static void HandleInputs()
 //TODO Make them Render all at once (possible?)
 static void RenderMesh(mesh* meshToRender, int meshId)
 {
-    triangle** trisToRaster = malloc(sizeof(triangle*) * meshToRender->triCount * 2);
+    triangle* trisToRaster = malloc(sizeof(triangle) * meshToRender->triCount * 2);
     int trisToRasterCount = 0;
 
     //Setup rotation and translation matrices
@@ -216,18 +216,18 @@ static void RenderMesh(mesh* meshToRender, int meshId)
                 triProjected.p[2].y *= 0.5f * (float) WINDOW_HEIGHT;
 
                 //Save Triangle for sorting (will be replaced)
-                trisToRaster[trisToRasterCount] = CopyTriangel(&triProjected);
+                CopyTriangel(&trisToRaster[trisToRasterCount],&triProjected);
                 trisToRasterCount++;
             }
         }
     }
 
     //Sort the Triangles with the painters algorithm
-    qsort(trisToRaster, trisToRasterCount, sizeof(triangle*), triCompareFunc);
+    qsort(trisToRaster, trisToRasterCount, sizeof(triangle), TriCompareFunc);
 
     //Raster all the Triangles
     for (int i = 0; i < trisToRasterCount; i++) {
-        triangle toRaster = *trisToRaster[i];
+        triangle toRaster = trisToRaster[i];
 
         Vector2 d0 = {toRaster.p[0].x, toRaster.p[0].y};
         Vector2 d1 = {toRaster.p[1].x, toRaster.p[1].y};
@@ -241,9 +241,6 @@ static void RenderMesh(mesh* meshToRender, int meshId)
 
     //Free all Triangles after drawing
     //TODO Check for memory leaks :3
-    for (int i = 0; i < trisToRasterCount; ++i) {
-        free(trisToRaster[i]);
-    }
     free(trisToRaster);
 }
 
