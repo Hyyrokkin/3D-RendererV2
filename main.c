@@ -11,7 +11,7 @@ int main()
     InitWindow((int)WINDOW_WIDTH, (int)WINDOW_HEIGHT, WINDOW_TITLE);
     Setup();
 
-    char* windowTitle = (char *) malloc((size_t )WINDOW_TITLE_MAX_LENGTH);
+    char* windowTitle = (char *) malloc(WINDOW_TITLE_MAX_LENGTH);
 
     //reset window title and redraw screen
     while(!WindowShouldClose())
@@ -26,7 +26,7 @@ int main()
         EndDrawing();
     }
 
-    //Cleanup raylib
+    //Cleanup
     free(windowTitle);
     CloseWindow();
     Exit();
