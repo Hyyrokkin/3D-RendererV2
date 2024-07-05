@@ -193,7 +193,7 @@ static void RenderMesh(mesh* meshToRender, int meshId)
             SetTriColorFromTri(&triViewed, &triTransformed);
 
             triangle clipped[2] = { 0 };
-            int clippedTris = TriangleClipWithPlane((vec3d){0.0f, 0.0f, NEAR_PLANE, 1.0f},(vec3d){0.0f, 0.0f, 1.0f, 1.0f}, &triViewed, &clipped[0], &clipped[1]);
+            int clippedTris = TriangleClipWithPlane(&(vec3d){0.0f, 0.0f, NEAR_PLANE, 1.0f},&(vec3d){0.0f, 0.0f, 1.0f, 1.0f}, &triViewed, &clipped[0], &clipped[1]);
 
 
             for (int n = 0; n < clippedTris; n++)

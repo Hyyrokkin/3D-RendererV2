@@ -25,60 +25,60 @@ typedef struct mat4x4
     float m[4][4];
 } mat4x4;
 
-void MakeMatIdentity(mat4x4* matrix);
+void MakeMatIdentity(mat4x4 matrix[static 1]);
 
-void MakeMatRotX(mat4x4* matrix, float angleRad);
+void MakeMatRotX(mat4x4 matrix[static 1], float angleRad);
 
-void MakeMatRotY(mat4x4* matrix, float angleRad);
+void MakeMatRotY(mat4x4 matrix[static 1], float angleRad);
 
-void MakeMatRotZ(mat4x4* matrix, float angleRad);
+void MakeMatRotZ(mat4x4 matrix[static 1], float angleRad);
 
-void MakeMatTranslate(mat4x4* matrix, const vec3d* pos);
+void MakeMatTranslate(mat4x4 matrix[static 1], const vec3d pos[static 1]);
 
-void MakeMatProjection(mat4x4* matrix, float fov, float aspectRatio, float farPlane, float nearPlane);
+void MakeMatProjection(mat4x4 matrix[static 1], float fov, float aspectRatio, float farPlane, float nearPlane);
 
-void MakeMatPointAt(mat4x4* matrix, const vec3d* pos, const vec3d* target, const vec3d* up);
+void MakeMatPointAt(mat4x4 matrix[static 1], const vec3d pos[static 1], const vec3d target[static 1], const vec3d up[static 1]);
 
-void MatrixQuickInverse(mat4x4* output, mat4x4* toInvert);
-
-
-void MultiplyMatrixMatrix(mat4x4* output, const mat4x4* input1, const mat4x4* input2);
-
-void MultiplyMatrixVector(vec3d* output, const vec3d* input, const mat4x4* matrix);
-
-void CrossProduct(vec3d* output, const vec3d* i1, const vec3d* i2);
-
-float DotProduct(const vec3d* i1, const vec3d* i2);
-
-float GetLengthVector(const vec3d* v);
-
-void NormalizeVector(vec3d* toNormalize);
-
-void CopyVector(vec3d* out, const vec3d* in);
-
-void AddVector(vec3d* output, const vec3d* i1, const vec3d* i2);
-
-void SubVector(vec3d* output, const vec3d* i1, const vec3d* i2);
-
-void MultiplyVector(vec3d* output, const vec3d* input, float k);
-
-void DivideVector(vec3d* output, const vec3d* input, float k);
+void MatrixQuickInverse(mat4x4 output[static 1], const mat4x4 toInvert[static 1]);
 
 
-void MultiplyTriangleMatrix(vec3d output[3], const vec3d input[3], const mat4x4* matrix);
+void MultiplyMatrixMatrix(mat4x4 output[static 1], const mat4x4 input1[static 1], const mat4x4 input2[static 1]);
 
-void AddTriangleVector(vec3d output[3], const vec3d i1[3], const vec3d* i2);
+void MultiplyMatrixVector(vec3d output[static 1], const vec3d input[static 1], const mat4x4 matrix[static 1]);
+
+void CrossProduct(vec3d output[static 1], const vec3d i1[static 1], const vec3d i2[static 1]);
+
+float DotProduct(const vec3d i1[static 1], const vec3d i2[static 1]);
+
+float GetLengthVector(const vec3d vector[static 1]);
+
+void NormalizeVector(vec3d toNormalize[static 1]);
+
+void CopyVector(vec3d out[static 1], const vec3d in[static 1]);
+
+void AddVector(vec3d output[static 1], const vec3d i1[static 1], const vec3d i2[static 1]);
+
+void SubVector(vec3d output[static 1], const vec3d i1[static 1], const vec3d i2[static 1]);
+
+void MultiplyVector(vec3d output[static 1], const vec3d input[static 1], float k);
+
+void DivideVector(vec3d output[static 1], const vec3d input[static 1], float k);
 
 
-void LineIntersectPlane(vec3d* out, const vec3d* planePoint, const vec3d* planeNormalIn, const vec3d* lineStart, const vec3d* lineEnd);
-int TriangleClipWithPlane(vec3d planePoint, vec3d planeNormalIn, triangle* triToCheck, triangle* triOut1, triangle* triOut2);
+void MultiplyTriangleMatrix(vec3d output[static 3], const vec3d input[static 3], const mat4x4 matrix[static 1]);
+
+void AddTriangleVector(vec3d output[static 3], const vec3d i1[static 3], const vec3d i2[static 1]);
 
 
-void SetTriColor(triangle* tri ,unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+void LineIntersectPlane(vec3d out[static 1], const vec3d planePoint[static 1], const vec3d planeNormalIn[static 1], const vec3d lineStart[static 1], const vec3d lineEnd[static 1]);
+int TriangleClipWithPlane(vec3d planePoint[static 1], vec3d planeNormalIn[static 1], triangle triToCheck[static 1], triangle triOut1[static 1], triangle triOut2[static 1]);
 
-void SetTriColorFromTri(triangle* triTo ,const triangle* triFrom);
 
-void CopyTriangel(triangle* out, const triangle* toCopy);
+void SetTriColor(triangle tri[static 1], unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+
+void SetTriColorFromTri(triangle triTo[static 1], const triangle triFrom[static 1]);
+
+void CopyTriangel(triangle out[static 1], const triangle toCopy[static 1]);
 
 int TriCompareFunc(const void * a, const void * b);
 
