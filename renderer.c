@@ -16,8 +16,8 @@ static vec3d camera = {.w=1.0f};
 static vec3d lookDir = { 0 };
 
 static float theta = { 0.0f };
-static float  yaw = { 0.0f };
-static float  pitch = { 0.0f };
+static float yaw = { 0.0f };
+static float pitch = { 0.0f };
 
 
 static mat4x4 MakeViewMat(void);
@@ -30,14 +30,22 @@ void Setup(void)
 {
     printf("[3D Render] - Started Setup\n");
 
-    int sz= 10;
+    /* Funny
+    int sz= 5;
     for (int i = 0; i < sz; i++) {
         for (int j = 0; j < sz; j++) {
-            arrput(meshList, LoadMesh("C:\\Users\\Morit\\Downloads\\ProgrammShit\\C Shit\\3D_Render\\meshes\\spaceship.obj"));
-            meshList[i*sz +j]->worldPos.z = 6.0f * i;
-            meshList[i*sz +j]->worldPos.y = 3.0f * j;
+            for (int k = 0; k < sz; ++k) {
+                arrput(meshList, LoadMesh("C:\\Users\\Morit\\Downloads\\ProgrammShit\\C Shit\\3D_Render\\meshes\\teapot.obj"));
+                meshList[i * sz * sz + j* sz + k]->worldPos.z = 3.0f * i + 3.0f;
+                meshList[i * sz * sz + j* sz + k]->worldPos.y = 3.0f * j;
+                meshList[i * sz * sz + j* sz + k]->worldPos.x = 3.0f * k;
+
+            }
         }
     }
+     */
+    arrput(meshList, LoadMesh("C:\\Users\\Morit\\Downloads\\ProgrammShit\\C Shit\\3D_Render\\meshes\\axis.obj"));
+    meshList[0]->worldPos.z = 3.0f;
 
     float aspectRatio = WINDOW_HEIGHT / WINDOW_WIDTH;
     MakeMatProjection(&matProj, FOV, aspectRatio, NEAR_PLANE, FAR_PLANE);
@@ -191,6 +199,7 @@ static triangle* PrepareTris(mesh meshToRender[1], mat4x4 matView, triangle* tri
         {
             //Do lighting Stuff
             vec3d lightDir = {.z=-1.0f, .w=1.0f};
+            SubVector(&lightDir, &triTransformed.p[0], &camera);
             NormalizeVector(&lightDir);
 
             int lightIntensity = (int)MapFrom0To1(fabsf(DotProduct(&lightDir, &normal)), 20.0f, 255.0f);

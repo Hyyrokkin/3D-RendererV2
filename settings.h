@@ -16,4 +16,3 @@ constexpr float HOR_MOVE_SPEED = 4.0f;
 constexpr float TURN_SPEED = 2.5f;
 
 #define RENDER_DEBUG
-
