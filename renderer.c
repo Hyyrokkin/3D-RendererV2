@@ -19,11 +19,11 @@ static float theta = { 0.0F };
 static float  yaw = { 0.0F };
 static float  pitch = { 0.0F };
 
-static void RenderMesh(mesh* meshToRender, int meshId);
-static void HandleInputs();
+static void RenderMesh(mesh meshToRender[static 1]);
+static void HandleInputs(void);
 
 //Function gets called only once at Project startup
-void Setup()
+void Setup(void)
 {
     printf("[3D Render] - Started Setup\n");
 
@@ -40,7 +40,7 @@ void Setup()
 }
 
 //Function that gets called every Frame
-void Update()
+void Update(void)
 {
     ClearBackground(DARKGRAY);
     theta += GetFrameTime();
@@ -50,11 +50,11 @@ void Update()
     //Render All Meshes
     for (int i = 0; i < meshCount; ++i)
     {
-        RenderMesh(meshList[i], i);
+        RenderMesh(meshList[i]);
     }
 }
 
-static void HandleInputs()
+static void HandleInputs(void)
 {
     vec3d forward = { 0 };
     vec3d right = { 0 };
@@ -109,7 +109,7 @@ static void HandleInputs()
 
 //Render one Mesh at a time
 //TODO Make them Render all at once (possible?)
-static void RenderMesh(mesh* meshToRender, int meshId)
+static void RenderMesh(mesh meshToRender[static 1])
 {
     triangle* trisToRaster = malloc(sizeof(triangle) * meshToRender->triCount * 2);
     int trisToRasterCount = 0;
@@ -196,11 +196,11 @@ static void RenderMesh(mesh* meshToRender, int meshId)
             int clippedTris = TriangleClipWithPlane(&(vec3d){0.0f, 0.0f, NEAR_PLANE, 1.0f},&(vec3d){0.0f, 0.0f, 1.0f, 1.0f}, &triViewed, &clipped[0], &clipped[1]);
 
 
-            for (int n = 0; n < clippedTris; n++)
+            for (int triNum = 0; triNum < clippedTris; triNum++)
             {
                 //Project Triangle
-                MultiplyTriangleMatrix(triProjected.p, clipped[n].p, &matProj);
-                SetTriColorFromTri(&triProjected, &clipped[n]);
+                MultiplyTriangleMatrix(triProjected.p, clipped[triNum].p, &matProj);
+                SetTriColorFromTri(&triProjected, &clipped[triNum]);
 
                 DivideVector(&triProjected.p[0], &triProjected.p[0], triProjected.p[0].w);
                 DivideVector(&triProjected.p[1], &triProjected.p[1], triProjected.p[1].w);
@@ -247,7 +247,7 @@ static void RenderMesh(mesh* meshToRender, int meshId)
 }
 
 //Called at the end of the project to Free stuff
-void Exit()
+void Exit(void)
 {
     for (int i = 0; i < meshCount; ++i)
     {

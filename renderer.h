@@ -1,5 +1,5 @@
 #pragma once
 
-void Setup();
-void Update();
-void Exit();
+void Setup(void);
+void Update(void);
+void Exit(void);
