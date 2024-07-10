@@ -16,7 +16,6 @@ typedef struct triangle
 typedef struct mesh
 {
     triangle* tris;
-    int triCount;
     vec3d worldPos;
 } mesh;
 
@@ -71,7 +70,7 @@ void AddTriangleVector(vec3d output[static 3], const vec3d i1[static 3], const v
 
 
 void LineIntersectPlane(vec3d out[static 1], const vec3d planePoint[static 1], const vec3d planeNormalIn[static 1], const vec3d lineStart[static 1], const vec3d lineEnd[static 1]);
-int TriangleClipWithPlane(vec3d planePoint[static 1], vec3d planeNormalIn[static 1], triangle triToCheck[static 1], triangle triOut1[static 1], triangle triOut2[static 1]);
+size_t TriangleClipWithPlane(vec3d planePoint[static 1], vec3d planeNormalIn[static 1], triangle triToCheck[static 1], triangle triOut1[static 1], triangle triOut2[static 1]);
 
 
 void SetTriColor(triangle tri[static 1], unsigned char r, unsigned char g, unsigned char b, unsigned char a);

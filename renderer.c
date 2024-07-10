@@ -2,14 +2,14 @@
 #include <stdlib.h>
 #include <math.h>
 #include "raylib.h"
+#include "libs/stb/stb_ds.h"
 
 #include "renderer.h"
 #include "util.h"
 #include "meshLoader.h"
 #include "settings.h"
 
-static mesh** meshList = { 0 };
-static int meshCount = { 0 };
+static mesh** meshList = NULL;
 static mat4x4 matProj = { 0 };
 
 static vec3d camera = {.w=1.0f};
@@ -19,7 +19,10 @@ static float theta = { 0.0f };
 static float  yaw = { 0.0f };
 static float  pitch = { 0.0f };
 
-static void RenderMesh(mesh meshToRender[static 1]);
+
+static mat4x4 MakeViewMat(void);
+static triangle* PrepareTris(mesh meshToRender[1], mat4x4 matView, triangle* triAcu);
+static void RenderTris(triangle* trisToRender);
 static void HandleInputs(void);
 
 //Function gets called only once at Project startup
@@ -27,11 +30,14 @@ void Setup(void)
 {
     printf("[3D Render] - Started Setup\n");
 
-    meshCount = 1;
-    meshList = malloc(sizeof(mesh*) * meshCount);
-
-    meshList[0] = LoadMesh("C:\\Users\\Morit\\Downloads\\ProgrammShit\\C Shit\\3D_Render\\meshes\\lambo.obj");
-    meshList[0]->worldPos.z = 3.0f;
+    int sz= 10;
+    for (int i = 0; i < sz; i++) {
+        for (int j = 0; j < sz; j++) {
+            arrput(meshList, LoadMesh("C:\\Users\\Morit\\Downloads\\ProgrammShit\\C Shit\\3D_Render\\meshes\\spaceship.obj"));
+            meshList[i*sz +j]->worldPos.z = 6.0f * i;
+            meshList[i*sz +j]->worldPos.y = 3.0f * j;
+        }
+    }
 
     float aspectRatio = WINDOW_HEIGHT / WINDOW_WIDTH;
     MakeMatProjection(&matProj, FOV, aspectRatio, NEAR_PLANE, FAR_PLANE);
@@ -47,11 +53,17 @@ void Update(void)
 
     HandleInputs();
 
-    //Render All Meshes
-    for (int i = 0; i < meshCount; ++i)
+    triangle* trisToRender = NULL;
+    mat4x4 viewMat = MakeViewMat();
+    for (size_t i = 0; i < arrlenu(meshList); ++i)
     {
-        RenderMesh(meshList[i]);
+        trisToRender= PrepareTris(meshList[i], viewMat, trisToRender);
     }
+
+    //Sort the Triangles with the painters algorithm
+    qsort(trisToRender, arrlenu(trisToRender), sizeof(triangle), TriCompareFunc);
+
+    RenderTris(trisToRender);
 }
 
 static void HandleInputs(void)
@@ -107,13 +119,33 @@ static void HandleInputs(void)
         pitch -= TURN_SPEED * GetFrameTime();
 }
 
+static mat4x4 MakeViewMat(void)
+{
+    vec3d up = {.y=-1.0f, .w=1.0f};
+    NormalizeVector(&up);
+
+    vec3d target = {.z=1.0f, .w=1.0f};
+    mat4x4 matCameraRotY = { 0 };
+    mat4x4 matCameraRotX = { 0 };
+    MakeMatRotY(&matCameraRotY, yaw);
+    MakeMatRotX(&matCameraRotX, pitch);
+    MultiplyMatrixVector(&target, &target, &matCameraRotX);
+    MultiplyMatrixVector(&lookDir, &target, &matCameraRotY);
+    NormalizeVector(&lookDir);
+    AddVector(&target, &camera, &lookDir);
+
+    mat4x4 matCamera = { 0 };
+    mat4x4 matView = { 0 };
+    MakeMatPointAt(&matCamera, &camera, &target, &up);
+    MatrixQuickInverse(&matView, &matCamera);
+
+    return matView;
+}
+
 //Render one Mesh at a time
 //TODO Make them Render all at once (possible?)
-static void RenderMesh(mesh meshToRender[static 1])
+static triangle* PrepareTris(mesh meshToRender[1], mat4x4 matView, triangle* triAcu)
 {
-    triangle* trisToRaster = malloc(sizeof(triangle) * meshToRender->triCount * 2);
-    int trisToRasterCount = 0;
-
     //Setup rotation and translation matrices
     mat4x4 matRotZ = { 0 };
     mat4x4 matRotY = { 0 };
@@ -133,42 +165,18 @@ static void RenderMesh(mesh meshToRender[static 1])
     MultiplyMatrixMatrix(&matWorld, &matWorld, &matRotX);
     MultiplyMatrixMatrix(&matWorld, &matWorld, &matTrans);
 
-
-    //Setup Camera and update look dir
-    //TODO dont do this every mesh (?)
-    vec3d up = {.y=-1.0f, .w=1.0f};
-    NormalizeVector(&up);
-
-    vec3d target = {.z=1.0f, .w=1.0f};
-    mat4x4 matCameraRotY = { 0 };
-    mat4x4 matCameraRotX = { 0 };
-    MakeMatRotY(&matCameraRotY, yaw);
-    MakeMatRotX(&matCameraRotX, pitch);
-    MultiplyMatrixVector(&target, &target, &matCameraRotX);
-    MultiplyMatrixVector(&lookDir, &target, &matCameraRotY);
-    NormalizeVector(&lookDir);
-    AddVector(&target, &camera, &lookDir);
-
-    mat4x4 matCamera = { 0 };
-    mat4x4 matView = { 0 };
-    MakeMatPointAt(&matCamera, &camera, &target, &up);
-    MatrixQuickInverse(&matView, &matCamera);
-
     //Do the render stuff for every triangle in the Mesh
-    for (int i = 0; i < meshToRender->triCount; ++i)
+    for (int i = 0; i < arrlen(meshToRender->tris); ++i)
     {
-        //Move the Triangle from Object space to World space
         triangle triTransformed = { 0 };
-        triangle triViewed = { 0 };
-        triangle triProjected = { 0 };
 
+        //Move the Triangle from Object space to World space
         MultiplyTriangleMatrix(triTransformed.p, meshToRender->tris[i].p, &matWorld);
 
         //Calculate the Normal for the Triangle
         vec3d normal = { 0 };
         vec3d line1 = { 0 };
         vec3d line2 = { 0 };
-        vec3d cameraRay = { 0 };
 
         SubVector(&line1, &triTransformed.p[1], &triTransformed.p[0]);
         SubVector(&line2, &triTransformed.p[2], &triTransformed.p[0]);
@@ -176,9 +184,9 @@ static void RenderMesh(mesh meshToRender[static 1])
         CrossProduct(&normal, &line1, &line2);
         NormalizeVector(&normal);
 
-        SubVector(&cameraRay, &triTransformed.p[0], &camera);
-
         //Only work on the Triangle if it can be seen from the Camera
+        vec3d cameraRay = { 0 };
+        SubVector(&cameraRay, &triTransformed.p[0], &camera);
         if(DotProduct(&normal, &cameraRay) < 0.0f)
         {
             //Do lighting Stuff
@@ -189,16 +197,18 @@ static void RenderMesh(mesh meshToRender[static 1])
             SetTriColor(&triTransformed, lightIntensity, lightIntensity, lightIntensity, 255);
 
             //Bring Triangle to View space
+            triangle triViewed = { 0 };
             MultiplyTriangleMatrix(triViewed.p, triTransformed.p, &matView);
             SetTriColorFromTri(&triViewed, &triTransformed);
 
+            //Clip Triangles on Viewport
             triangle clipped[2] = { 0 };
-            int clippedTris = TriangleClipWithPlane(&(vec3d){.z=NEAR_PLANE, .w=1.0f},&(vec3d){.z=1.0f, .w=1.0f}, &triViewed, &clipped[0], &clipped[1]);
+            size_t clippedTris = TriangleClipWithPlane(&(vec3d){.z=NEAR_PLANE, .w=1.0f},&(vec3d){.z=1.0f, .w=1.0f}, &triViewed, &clipped[0], &clipped[1]);
 
-
-            for (int triNum = 0; triNum < clippedTris; triNum++)
+            for (size_t triNum = 0; triNum < clippedTris; triNum++)
             {
                 //Project Triangle
+                triangle triProjected = { 0 };
                 MultiplyTriangleMatrix(triProjected.p, clipped[triNum].p, &matProj);
                 SetTriColorFromTri(&triProjected, &clipped[triNum]);
 
@@ -217,19 +227,20 @@ static void RenderMesh(mesh meshToRender[static 1])
                 triProjected.p[2].y *= 0.5f * WINDOW_HEIGHT;
 
                 //Save Triangle for sorting (will be replaced)
-                CopyTriangel(&trisToRaster[trisToRasterCount],&triProjected);
-                trisToRasterCount++;
+
+                arrput(triAcu, triProjected);
             }
         }
     }
+    return triAcu;
+}
 
-    //Sort the Triangles with the painters algorithm
-    qsort(trisToRaster, trisToRasterCount, sizeof(triangle), TriCompareFunc);
-
+static void RenderTris(triangle* trisToRender)
+{
     //Raster all the Triangles
-    for (int i = 0; i < trisToRasterCount; i++)
+    for (size_t i = 0; i < arrlenu(trisToRender); i++)
     {
-        triangle toRaster = trisToRaster[i];
+        triangle toRaster = trisToRender[i];
 
         Vector2 d0 = {toRaster.p[0].x, toRaster.p[0].y};
         Vector2 d1 = {toRaster.p[1].x, toRaster.p[1].y};
@@ -237,21 +248,17 @@ static void RenderMesh(mesh meshToRender[static 1])
 
         DrawTriangle(d0, d1, d2, toRaster.triColor);
         #ifdef RENDER_DEBUG
-            DrawTriangleLines(d0, d1, d2, BLACK);
+        DrawTriangleLines(d0, d1, d2, BLACK);
         #endif
     }
-
-    //Free all Triangles after drawing
-    //TODO Check for memory leaks :3
-    free(trisToRaster);
 }
 
 //Called at the end of the project to Free stuff
 void Exit(void)
 {
-    for (int i = 0; i < meshCount; ++i)
+    for (size_t i = 0; i < arrlenu(meshList); ++i)
     {
         FreeMesh(meshList[i]);
     }
-    free(meshList);
+    arrfree(meshList);
 }

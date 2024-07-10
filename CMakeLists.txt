@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.26)
+cmake_minimum_required(VERSION 3.28)
 project(3D_Render C)
 
 set(CMAKE_C_STANDARD 23)
@@ -25,6 +25,10 @@ if (NOT raylib_FOUND) # If there's none, fetch and build raylib
     endif()
 endif()
 
+file(DOWNLOAD
+        https://raw.githubusercontent.com/nothings/stb/master/stb_ds.h
+        ${CMAKE_SOURCE_DIR}/libs/stb/stb_ds.h)
+
 # Our Project
 
 add_executable(${PROJECT_NAME} main.c
@@ -34,6 +38,7 @@ add_executable(${PROJECT_NAME} main.c
         meshLoader.h
         util.h
         util.c
-        settings.h)
+        settings.h
+        libs/stb/stb_ds.h)
 #set(raylib_VERBOSE 1)
 target_link_libraries(${PROJECT_NAME} raylib)

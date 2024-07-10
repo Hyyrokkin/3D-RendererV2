@@ -213,7 +213,7 @@ float DistPointToPlane(const vec3d point[1], const vec3d planeNormal[1], const v
     return (planeNormal->x * point->x + planeNormal->y * point->y + planeNormal->z * point->z - DotProduct(planeNormal, planePoint));
 }
 
-int TriangleClipWithPlane(vec3d planePoint[static 1], vec3d planeNormalIn[static 1], triangle triToCheck[static 1], triangle triOut1[static 1], triangle triOut2[static 1])
+size_t TriangleClipWithPlane(vec3d planePoint[static 1], vec3d planeNormalIn[static 1], triangle triToCheck[static 1], triangle triOut1[static 1], triangle triOut2[static 1])
 {
     vec3d planeNormal;
     CopyVector(&planeNormal, planeNormalIn);

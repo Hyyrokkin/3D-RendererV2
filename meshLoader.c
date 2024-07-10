@@ -1,22 +1,28 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "libs/stb/stb_ds.h"
 
 #include "meshLoader.h"
 
 //Load a mesh from a file path
-mesh* LoadMesh(const char* meshName)
+mesh* LoadMesh(const char meshName[static 1])
 {
+    //Build the actual Mesh
+    mesh* m = malloc(sizeof(mesh));
+
+    m->tris = NULL;
+    m->worldPos.x = 0.0f;
+    m->worldPos.y = 0.0f;
+    m->worldPos.z = 0.0f;
+    m->worldPos.w = 1.0f;
+
     //TODO Unsafe :(
     FILE* fptr;
     fptr = fopen(meshName, "r");
 
-    //TODO change it so it will do this stuff dynamically
-    vec3d* tmpVerts = malloc(sizeof(vec3d*) * 100000);
-    int tmpVertsCount = 0;
-
-    triangle * tmpTris = malloc(sizeof(triangle*) * 100000);
-    int tmpTrisCount = 0;
+    vec3d* tmpVerts = NULL;
+    arrput(tmpVerts, ((vec3d){ 0 }));
 
     //Reads over every line of the file
     char line[256];
@@ -38,8 +44,7 @@ mesh* LoadMesh(const char* meshName)
             ptr = strtok(NULL, delim);
             float f3 = strtof(ptr, NULL);
 
-            tmpVertsCount++;
-            tmpVerts[tmpVertsCount] = (vec3d){f1, f2, f3, 1};
+            arrput(tmpVerts, ((vec3d){.x=f1, .y=f2, .z=f3, .w=1}));
         }
         //line describes a triangle
         else if(line[0] == 'f')
@@ -56,38 +61,19 @@ mesh* LoadMesh(const char* meshName)
             ptr = strtok(NULL, delim);
             int i3 = strtol(ptr, &end, 10);
 
-            tmpTris[tmpTrisCount].p[0] = tmpVerts[i1];
-            tmpTris[tmpTrisCount].p[1] = tmpVerts[i2];
-            tmpTris[tmpTrisCount].p[2] = tmpVerts[i3];
-            tmpTrisCount++;
+            triangle tmp = {.p[0]=tmpVerts[i1],.p[1]=tmpVerts[i2],.p[2]=tmpVerts[i3]};
+            arrput(m->tris, tmp);
         }
     }
 
     fclose(fptr);
-    free(tmpVerts);
-
-    //Build the actual Mesh
-    mesh* m = malloc(sizeof(mesh));
-
-    m->triCount = tmpTrisCount;
-    m->tris = malloc(sizeof(triangle) * m->triCount);
-    m->worldPos.x = 0.0f;
-    m->worldPos.y = 0.0f;
-    m->worldPos.z = 0.0f;
-    m->worldPos.w = 1.0f;
-
-    //Copy all the data into the Mesh
-    for (int i = 0; i < tmpTrisCount; ++i)
-    {
-        memcpy(&m->tris[i], &tmpTris[i], sizeof(triangle));
-    }
-    free(tmpTris);
+    arrfree(tmpVerts);
 
     return m;
 }
 
-void FreeMesh(mesh* mesh)
+void FreeMesh(mesh mesh[static 1])
 {
-    free(mesh->tris);
+    arrfree(mesh->tris);
     free(mesh);
 }
