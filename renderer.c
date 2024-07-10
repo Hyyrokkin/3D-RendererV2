@@ -12,12 +12,12 @@ static mesh** meshList = { 0 };
 static int meshCount = { 0 };
 static mat4x4 matProj = { 0 };
 
-static vec3d camera = {.x=0.0F, .y=0.0F, .z=0.0F, .w=1.0F};
+static vec3d camera = {.w=1.0f};
 static vec3d lookDir = { 0 };
 
-static float theta = { 0.0F };
-static float  yaw = { 0.0F };
-static float  pitch = { 0.0F };
+static float theta = { 0.0f };
+static float  yaw = { 0.0f };
+static float  pitch = { 0.0f };
 
 static void RenderMesh(mesh meshToRender[static 1]);
 static void HandleInputs(void);
@@ -28,7 +28,7 @@ void Setup(void)
     printf("[3D Render] - Started Setup\n");
 
     meshCount = 1;
-    meshList = malloc(sizeof(mesh*)*meshCount);
+    meshList = malloc(sizeof(mesh*) * meshCount);
 
     meshList[0] = LoadMesh("C:\\Users\\Morit\\Downloads\\ProgrammShit\\C Shit\\3D_Render\\meshes\\lambo.obj");
     meshList[0]->worldPos.z = 3.0f;
@@ -62,7 +62,7 @@ static void HandleInputs(void)
 
     //Get current cam dir vectors
     CopyVector(&forward, &lookDir);
-    CrossProduct(&right, &lookDir, &(vec3d) {.x=0.0f, .y=1.0f, .z=0.0f, .w=1.0f});
+    CrossProduct(&right, &lookDir, &(vec3d) {.y=1.0f, .w=1.0f});
     CrossProduct(&up, &lookDir, &right);
 
     NormalizeVector(&forward);
@@ -136,10 +136,10 @@ static void RenderMesh(mesh meshToRender[static 1])
 
     //Setup Camera and update look dir
     //TODO dont do this every mesh (?)
-    vec3d up = {.x=0.0f, .y=-1.0f, .z=0.0f, .w=1.0f};
+    vec3d up = {.y=-1.0f, .w=1.0f};
     NormalizeVector(&up);
 
-    vec3d target = {.x=0.0f, .y=0.0f, .z=1.0f, .w=1.0f};
+    vec3d target = {.z=1.0f, .w=1.0f};
     mat4x4 matCameraRotY = { 0 };
     mat4x4 matCameraRotX = { 0 };
     MakeMatRotY(&matCameraRotY, yaw);
@@ -182,7 +182,7 @@ static void RenderMesh(mesh meshToRender[static 1])
         if(DotProduct(&normal, &cameraRay) < 0.0f)
         {
             //Do lighting Stuff
-            vec3d lightDir = {.x=0.0f, .y=0.0f , .z=-1.0f, .w=1.0f};
+            vec3d lightDir = {.z=-1.0f, .w=1.0f};
             NormalizeVector(&lightDir);
 
             int lightIntensity = (int)MapFrom0To1(fabsf(DotProduct(&lightDir, &normal)), 20.0f, 255.0f);
@@ -193,7 +193,7 @@ static void RenderMesh(mesh meshToRender[static 1])
             SetTriColorFromTri(&triViewed, &triTransformed);
 
             triangle clipped[2] = { 0 };
-            int clippedTris = TriangleClipWithPlane(&(vec3d){.x=0.0f, .y=0.0f, .z=NEAR_PLANE, .w=1.0f},&(vec3d){.x=0.0f, .y=0.0f, .z=1.0f, .w=1.0f}, &triViewed, &clipped[0], &clipped[1]);
+            int clippedTris = TriangleClipWithPlane(&(vec3d){.z=NEAR_PLANE, .w=1.0f},&(vec3d){.z=1.0f, .w=1.0f}, &triViewed, &clipped[0], &clipped[1]);
 
 
             for (int triNum = 0; triNum < clippedTris; triNum++)
@@ -207,7 +207,7 @@ static void RenderMesh(mesh meshToRender[static 1])
                 DivideVector(&triProjected.p[2], &triProjected.p[2], triProjected.p[2].w);
 
                 //Move the Triangle to Screen space
-                AddTriangleVector(triProjected.p, triProjected.p, &(vec3d){.x=1.0f, .y=1.0f, .z=0.0f, .w=1.0f});
+                AddTriangleVector(triProjected.p, triProjected.p, &(vec3d){.x=1.0f, .y=1.0f, .w=1.0f});
 
                 triProjected.p[0].x *= 0.5f * WINDOW_WIDTH;
                 triProjected.p[0].y *= 0.5f * WINDOW_HEIGHT;
