@@ -77,8 +77,6 @@ void SetTriColor(triangle tri[static 1], unsigned char r, unsigned char g, unsig
 
 void SetTriColorFromTri(triangle triTo[static 1], const triangle triFrom[static 1]);
 
-void CopyTriangel(triangle out[static 1], const triangle toCopy[static 1]);
-
 int TriCompareFunc(const void * a, const void * b);
 
 float Map(float value, float fromStart, float fromFinish, float toStart, float toFinish);

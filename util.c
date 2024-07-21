@@ -208,7 +208,7 @@ void LineIntersectPlane(vec3d out[static 1], const vec3d planePoint[static 1], c
     AddVector(out, lineStart, &lineToIntersect);
 }
 
-float DistPointToPlane(const vec3d point[1], const vec3d planeNormal[1], const vec3d planePoint[1])
+static float DistPointToPlane(const vec3d point[1], const vec3d planeNormal[1], const vec3d planePoint[1])
 {
     return (planeNormal->x * point->x + planeNormal->y * point->y + planeNormal->z * point->z - DotProduct(planeNormal, planePoint));
 }
@@ -315,7 +315,7 @@ size_t TriangleClipWithPlane(vec3d planePoint[static 1], vec3d planeNormalIn[sta
 
 float Map(const float value, const float fromStart, const float fromFinish, const float toStart, const float toFinish)
 {
-    return (toStart + (value-fromStart)*(toFinish-toStart)/(fromFinish-fromStart));
+    return (toStart + (value - fromStart) * (toFinish - toStart) / (fromFinish - fromStart));
 }
 
 float MapFrom0To1(const float value, const float start, const float finish)
@@ -334,14 +334,6 @@ void SetTriColor(triangle tri[static 1], const unsigned char r, const unsigned c
 void SetTriColorFromTri(triangle triTo[static 1], const triangle triFrom[static 1])
 {
     SetTriColor(triTo, triFrom->triColor.r, triFrom->triColor.g, triFrom->triColor.b, triFrom->triColor.a);
-}
-
-void CopyTriangel(triangle out[static 1], const triangle toCopy[static 1])
-{
-    out->triColor = toCopy->triColor;
-    out->p[0] = toCopy->p[0];
-    out->p[1] = toCopy->p[1];
-    out->p[2] = toCopy->p[2];
 }
 
 //for the painters sort algo

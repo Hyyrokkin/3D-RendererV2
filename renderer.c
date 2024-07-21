@@ -44,7 +44,7 @@ void Setup(void)
         }
     }
      */
-    arrput(meshList, LoadMesh("C:\\Users\\Morit\\Downloads\\ProgrammShit\\C Shit\\3D_Render\\meshes\\axis.obj"));
+    arrput(meshList, LoadMesh("C:/Users/Morit/Downloads/ProgrammShit/C Shit/3D_Render/meshes/axis.obj"));
     meshList[0]->worldPos.z = 3.0f;
 
     float aspectRatio = WINDOW_HEIGHT / WINDOW_WIDTH;
