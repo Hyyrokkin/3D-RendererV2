@@ -13,7 +13,7 @@ static mesh** meshList = NULL;
 static mat4x4 matProj = { 0 };
 
 static vec3d camera = {.w=1.0f};
-static vec3d lookDir = { 0 };
+static vec3d lookDir = {0};
 
 static float theta = { 0.0f };
 static float yaw = { 0.0f };
@@ -30,22 +30,12 @@ void Setup(void)
 {
     printf("[3D Render] - Started Setup\n");
 
-    /* Funny
-    int sz= 5;
-    for (int i = 0; i < sz; i++) {
-        for (int j = 0; j < sz; j++) {
-            for (int k = 0; k < sz; ++k) {
-                arrput(meshList, LoadMesh("C:\\Users\\Morit\\Downloads\\ProgrammShit\\C Shit\\3D_Render\\meshes\\teapot.obj"));
-                meshList[i * sz * sz + j* sz + k]->worldPos.z = 3.0f * i + 3.0f;
-                meshList[i * sz * sz + j* sz + k]->worldPos.y = 3.0f * j;
-                meshList[i * sz * sz + j* sz + k]->worldPos.x = 3.0f * k;
-
-            }
-        }
-    }
-     */
     arrput(meshList, LoadMesh("C:/Users/Morit/Downloads/ProgrammShit/C Shit/3D_Render/meshes/axis.obj"));
     meshList[0]->worldPos.z = 3.0f;
+
+    arrput(meshList, LoadMesh("C:/Users/Morit/Downloads/ProgrammShit/C Shit/3D_Render/meshes/cube.obj"));
+    meshList[1]->worldPos.z = 3.0f;
+    meshList[1]->worldPos.x = 3.0f;
 
     float aspectRatio = WINDOW_HEIGHT / WINDOW_WIDTH;
     MakeMatProjection(&matProj, FOV, aspectRatio, NEAR_PLANE, FAR_PLANE);
@@ -78,11 +68,12 @@ static void HandleInputs(void)
 {
     vec3d forward = { 0 };
     vec3d right = { 0 };
-    vec3d  up = { 0 };
+    vec3d  up = {.y=1.0f, .w=1.0f};
 
     //Get current cam dir vectors
     CopyVector(&forward, &lookDir);
-    CrossProduct(&right, &lookDir, &(vec3d) {.y=1.0f, .w=1.0f});
+    CrossProduct(&right, &lookDir, &up);
+    MultiplyVector(&right, &right, -1);
     CrossProduct(&up, &lookDir, &right);
 
     NormalizeVector(&forward);
@@ -101,35 +92,35 @@ static void HandleInputs(void)
     if(IsKeyDown(KEY_S))
         SubVector(&camera, &camera, &forward);
 
-    if(IsKeyDown(KEY_A))
-        SubVector(&camera, &camera, &right);
-
     if(IsKeyDown(KEY_D))
         AddVector(&camera, &camera, &right);
 
+    if(IsKeyDown(KEY_A))
+        SubVector(&camera, &camera, &right);
+
     if(IsKeyDown(KEY_SPACE))
-        SubVector(&camera, &camera, &up);
+        AddVector(&camera, &camera, &up);
 
     if(IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT))
-        AddVector(&camera, &camera, &up);
+        SubVector(&camera, &camera, &up);
 
 
     if(IsKeyDown(KEY_LEFT))
-        yaw -= TURN_SPEED * GetFrameTime();
-
-    if(IsKeyDown(KEY_RIGHT))
         yaw += TURN_SPEED * GetFrameTime();
 
-    if(IsKeyDown(KEY_UP) && pitch < 1.5f)
+    if(IsKeyDown(KEY_RIGHT))
+        yaw -= TURN_SPEED * GetFrameTime();
+
+    if(IsKeyDown(KEY_UP) && pitch < 0.9f)
         pitch += TURN_SPEED * GetFrameTime();
 
-    if(IsKeyDown(KEY_DOWN) && pitch > -1.5f)
+    if(IsKeyDown(KEY_DOWN) && pitch > -0.9f)
         pitch -= TURN_SPEED * GetFrameTime();
 }
 
 static mat4x4 MakeViewMat(void)
 {
-    vec3d up = {.y=-1.0f, .w=1.0f};
+    vec3d up = {.y=1.0f, .w=1.0f};
     NormalizeVector(&up);
 
     vec3d target = {.z=1.0f, .w=1.0f};
@@ -152,7 +143,7 @@ static mat4x4 MakeViewMat(void)
 
 //Render one Mesh at a time
 //TODO Make them Render all at once (possible?)
-static triangle* PrepareTris(mesh meshToRender[1], mat4x4 matView, triangle* triAcu)
+static triangle* PrepareTris(mesh meshToRender[static 1], mat4x4 matView, triangle* triAcu)
 {
     //Setup rotation and translation matrices
     mat4x4 matRotZ = { 0 };
@@ -194,15 +185,15 @@ static triangle* PrepareTris(mesh meshToRender[1], mat4x4 matView, triangle* tri
 
         //Only work on the Triangle if it can be seen from the Camera
         vec3d cameraRay = { 0 };
-        SubVector(&cameraRay, &triTransformed.p[0], &camera);
-        if(DotProduct(&normal, &cameraRay) < 0.0f)
+        SubVector(&cameraRay, &camera, &triTransformed.p[0]);
+        if(DotProduct(&normal, &cameraRay) > 0.0f)
         {
             //Do lighting Stuff
             vec3d lightDir = {.z=-1.0f, .w=1.0f};
-            SubVector(&lightDir, &triTransformed.p[0], &camera);
             NormalizeVector(&lightDir);
 
-            int lightIntensity = (int)MapFrom0To1(fabsf(DotProduct(&lightDir, &normal)), 20.0f, 255.0f);
+            float tmp = DotProduct(&lightDir, &normal);
+            unsigned char lightIntensity = (unsigned char)Map0To1(tmp > 0 ? tmp : 0, 20.0f, 255.0f);
             SetTriColor(&triTransformed, lightIntensity, lightIntensity, lightIntensity, 255);
 
             //Bring Triangle to View space
@@ -214,7 +205,7 @@ static triangle* PrepareTris(mesh meshToRender[1], mat4x4 matView, triangle* tri
             triangle clipped[2] = { 0 };
             size_t clippedTris = TriangleClipWithPlane(&(vec3d){.z=NEAR_PLANE, .w=1.0f},&(vec3d){.z=1.0f, .w=1.0f}, &triViewed, &clipped[0], &clipped[1]);
 
-            for (size_t triNum = 0; triNum < clippedTris; triNum++)
+            for (int triNum = 0; triNum < clippedTris; triNum++)
             {
                 //Project Triangle
                 triangle triProjected = { 0 };
@@ -244,20 +235,20 @@ static triangle* PrepareTris(mesh meshToRender[1], mat4x4 matView, triangle* tri
     return triAcu;
 }
 
-static void RenderTris(triangle* trisToRender)
+static void RenderTris(triangle trisToRender[static 1])
 {
     //Raster all the Triangles
     for (size_t i = 0; i < arrlenu(trisToRender); i++)
     {
         triangle toRaster = trisToRender[i];
 
-        Vector2 d0 = {toRaster.p[0].x, toRaster.p[0].y};
-        Vector2 d1 = {toRaster.p[1].x, toRaster.p[1].y};
-        Vector2 d2 = {toRaster.p[2].x, toRaster.p[2].y};
+        Vector2 d0 = {toRaster.p[0].x, WINDOW_HEIGHT - toRaster.p[0].y};
+        Vector2 d1 = {toRaster.p[1].x, WINDOW_HEIGHT - toRaster.p[1].y};
+        Vector2 d2 = {toRaster.p[2].x, WINDOW_HEIGHT - toRaster.p[2].y};
 
-        DrawTriangle(d0, d1, d2, toRaster.triColor);
+        DrawTriangle(d0, d2, d1, toRaster.triColor);
         #ifdef RENDER_DEBUG
-        DrawTriangleLines(d0, d1, d2, BLACK);
+        DrawTriangleLines(d0, d2, d1, BLACK);
         #endif
     }
 }

@@ -221,8 +221,8 @@ size_t TriangleClipWithPlane(vec3d planePoint[static 1], vec3d planeNormalIn[sta
 
     vec3d insidePoint[3];
     vec3d outsidePoint[3];
-    int insidePointCount = 0;
-    int outsidePointCount = 0;
+    size_t insidePointCount = 0;
+    size_t outsidePointCount = 0;
 
     float d0 = DistPointToPlane(&triToCheck->p[0], &planeNormal, planePoint);
     float d1 = DistPointToPlane(&triToCheck->p[1], &planeNormal, planePoint);
@@ -318,7 +318,7 @@ float Map(const float value, const float fromStart, const float fromFinish, cons
     return (toStart + (value - fromStart) * (toFinish - toStart) / (fromFinish - fromStart));
 }
 
-float MapFrom0To1(const float value, const float start, const float finish)
+float Map0To1(const float value, const float start, const float finish)
 {
     return Map(value, 0.0f, 1.0f, start, finish);
 }

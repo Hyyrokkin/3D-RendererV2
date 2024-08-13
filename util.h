@@ -81,4 +81,4 @@ int TriCompareFunc(const void * a, const void * b);
 
 float Map(float value, float fromStart, float fromFinish, float toStart, float toFinish);
 
-float MapFrom0To1(float value, float start, float finish);
+float Map0To1(float value, float start, float finish);
